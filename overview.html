@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 for Blender</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<style>
+
+  :root {
+    --bg: #f3f4f6; --surface: #ffffff; --surface-2: #f8f9fb;
+    --ink: #191c23; --ink-soft: #3a404b; --muted: #626c7a; --faint: #8b95a3;
+    --border: #e3e6ec; --border-strong: #ccd2dc;
+    --accent: #4759d6; --accent-ink: #3446c0; --accent-wash: #eceffc;
+    --brand: #c86491;
+    --gn: #5f8f36; --sn: #bb5340; --comp: #2f88a8;
+    --good: #4a9a58; --warn: #cf9524; --crit: #cf4b45;
+    --hero-1: #1c2a63; --hero-2: #2f47b8; --hero-3: #4a63e0; --hero-ink: #eef1ff; --hero-soft: #b9c4f2;
+    --shadow: 0 1px 2px rgba(20,26,40,.04), 0 6px 20px -8px rgba(20,26,40,.10);
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --maxw: 1200px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121419; --surface: #1a1d24; --surface-2: #1f232c;
+      --ink: #e9ebf1; --ink-soft: #c4c9d4; --muted: #98a1b0; --faint: #6b7484;
+      --border: #2a2f3a; --border-strong: #3a414f;
+      --accent: #8091f2; --accent-ink: #a3b0f8; --accent-wash: #20263d;
+      --gn: #91bd63; --sn: #e08066; --comp: #5cb6d6;
+      --good: #6cc07d; --warn: #e2b24d; --crit: #e8726c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="light"] { --bg:#f3f4f6;--surface:#fff;--surface-2:#f8f9fb;--ink:#191c23;--ink-soft:#3a404b;--muted:#626c7a;--faint:#8b95a3;--border:#e3e6ec;--border-strong:#ccd2dc;--accent:#4759d6;--accent-ink:#3446c0;--accent-wash:#eceffc;--gn:#5f8f36;--sn:#bb5340;--comp:#2f88a8;--good:#4a9a58;--warn:#cf9524;--crit:#cf4b45;--shadow:0 1px 2px rgba(20,26,40,.04),0 6px 20px -8px rgba(20,26,40,.10);}
+  :root[data-theme="dark"] { --bg:#121419;--surface:#1a1d24;--surface-2:#1f232c;--ink:#e9ebf1;--ink-soft:#c4c9d4;--muted:#98a1b0;--faint:#6b7484;--border:#2a2f3a;--border-strong:#3a414f;--accent:#8091f2;--accent-ink:#a3b0f8;--accent-wash:#20263d;--gn:#91bd63;--sn:#e08066;--comp:#5cb6d6;--good:#6cc07d;--warn:#e2b24d;--crit:#e8726c;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -12px rgba(0,0,0,.55);}
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: #fff; }
+  h1,h2,h3,h4 { text-wrap: balance; }
+
+  /* ===== Shared top bar with view switcher ===== */
+  .topbar {
+    position: sticky; top: 0; z-index: 70;
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+  }
+  .topbar-in {
+    max-width: var(--maxw); margin: 0 auto; padding: 11px 22px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-weight: 680; letter-spacing: -.01em; font-size: .95rem;
+    white-space: nowrap;
+  }
+  .glyph {
+    width: 32px; height: 30px; flex: none; position: relative;
+    display: grid; place-items: center; overflow: visible;
+  }
+  .glyph::after { content: none; }
+  .glyph svg { position: relative; z-index: 1; width: 28px; height: 27px; display: block; }
+  .glyph .wire { fill: none; stroke: color-mix(in srgb, var(--muted) 70%, var(--surface)); stroke-width: 1.15; stroke-linecap: round; }
+  .glyph .n-gn { fill: #98d66f; }
+  .glyph .n-sn { fill: #ff8a6b; }
+  .glyph .n-comp { fill: #6bd2f0; }
+  .glyph .n-hub { fill: var(--brand); }
+  .brand-oebs { color: var(--brand); font-weight: 800; }
+  .brand .ver {
+    font-family: var(--mono); font-size: .68rem; color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 9%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    padding: 1px 8px; border-radius: 100px;
+  }
+  .guidenav {
+    display: flex; align-items: center; gap: 2px;
+    min-width: 0; overflow-x: auto; scrollbar-width: none;
+  }
+  .guidenav::-webkit-scrollbar { display: none; }
+  .guidenav a {
+    font-family: var(--mono); font-size: .68rem; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--muted); text-decoration: none;
+    white-space: nowrap; padding: 6px 9px; border-radius: 7px;
+  }
+  .guidenav a:hover { color: var(--ink); background: var(--surface-2); }
+  .topbar .sp { flex: 1; }
+  .viewtoggle {
+    display: flex; gap: 2px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 3px;
+  }
+  .viewtoggle a {
+    font-family: var(--mono); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--muted); text-decoration: none;
+    padding: 6px 13px; border-radius: 7px; transition: all .15s;
+    white-space: nowrap;
+  }
+  .viewtoggle a:hover { color: var(--ink); }
+  .viewtoggle a.active {
+    background: var(--surface); color: var(--accent-ink);
+    box-shadow: var(--shadow); font-weight: 600;
+  }
+  .theme-toggle {
+    width: 34px; height: 34px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--ink); cursor: pointer; display: grid; place-items: center;
+    font-size: 1rem; line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent-ink); }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 860px) {
+    .topbar-in { align-items: flex-start; flex-wrap: wrap; gap: 9px; }
+    .brand { flex: 1 1 auto; }
+    .guidenav {
+      order: 4; flex: 1 0 100%; width: 100%;
+      padding: 3px 0 1px;
+    }
+    .guidenav a { background: var(--surface-2); border: 1px solid var(--border); }
+    .topbar .sp { display: none; }
+  }
+
+  
+
+
+  footer { border-top: 1px solid var(--border); }
+  .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 30px 24px 48px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: .74rem; color: var(--muted); letter-spacing: .02em; }
+  .footer-inner .r { color: var(--faint); }
+
+  a:focus-visible, .act:focus-visible, .btn:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+  }
+
+/* ===================================================================
+     VIEW: OVERVIEW
+     =================================================================== */
+  #view-overview { --maxw: 1140px; }
+
+#view-overview .hero {
+  position: relative; overflow: hidden; color: var(--hero-ink);
+  background:
+    radial-gradient(640px 460px at 8% -8%,  rgba(99,124,240,.42), transparent 62%),
+    radial-gradient(560px 420px at 92% 6%,  rgba(63,168,196,.24), transparent 64%),
+    radial-gradient(520px 360px at 55% 112%, rgba(196,104,78,.16), transparent 66%),
+    linear-gradient(180deg, #12152a 0%, #0a0c17 100%);
+}
+
+#view-overview .signal-wrap {
+  position: absolute; inset: 0 auto 0 50%;
+  width: min(100%, calc(var(--maxw) + 180px));
+  transform: translateX(-50%);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+#view-overview .signal-wrap svg { width: 100%; height: 100%; display: block; }
+#view-overview .signal-path {
+  fill: none; stroke-width: 1.6; stroke-linecap: round;
+  stroke-dasharray: 8 44; animation: ngm-flow linear infinite;
+}
+#view-overview .signal-path.w1 { stroke: #93a4ff; opacity: .5;  animation-duration: 6.4s; }
+#view-overview .signal-path.w2 { stroke: #7fd7e0; opacity: .38; animation-duration: 8.2s; animation-delay: -1.4s; }
+#view-overview .signal-path.w3 { stroke: #ffffff; opacity: .16; animation-duration: 9.6s; animation-delay: -3.1s; }
+#view-overview .signal-path.w4 { stroke: var(--brand); opacity: .34; animation-duration: 7.3s; animation-delay: -2.2s; }
+#view-overview .signal-path.w5 { stroke: #93e0a0; opacity: .26; animation-duration: 10.4s; animation-delay: -4.6s; }
+@keyframes ngm-flow { to { stroke-dashoffset: -312; } }
+@media (prefers-reduced-motion: reduce) {
+  #view-overview .signal-path { animation: none; opacity: .22; stroke-dasharray: none; }
+}
+
+#view-overview .hero-in {
+  position: relative; z-index: 2; max-width: 860px; margin: 0 auto;
+  padding: 62px 22px 94px; text-align: center;
+}
+
+#view-overview .hero-eyebrow { font-family: var(--mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .18em;
+      color: var(--hero-soft); margin: 18px 0 20px; }
+
+#view-overview .hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4.2rem); line-height: 1.04; letter-spacing: -.032em; font-weight: 780;
+  margin: 0 auto 20px; max-width: 15ch;
+  background: linear-gradient(122deg, #ffffff 0%, #dbe1ff 42%, #93a4ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+#view-overview .hero .tagline {
+  max-width: 52ch; margin: 0 auto 12px;
+  font-size: 1.35rem; font-weight: 600; letter-spacing: -.01em; color: #fff;
+}
+
+#view-overview .hero .lede {
+  font-size: 1.1rem; color: var(--hero-soft);
+  max-width: 58ch; margin: 0 auto 28px;
+}
+
+#view-overview .hero code { font-family: var(--mono); font-size: .92em;
+      background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18);
+      padding: .06em .38em; border-radius: 5px; color: #dbe1ff; white-space: nowrap; }
+
+#view-overview .btnrow { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+#view-overview .btn { font-weight: 600; font-size: .95rem; padding: 12px 22px; border-radius: 10px; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 9px; cursor: pointer; border: 1px solid transparent; transition: transform .12s ease; }
+
+#view-overview .btn:hover { transform: translateY(-1px); }
+
+#view-overview .btn.primary { background: #fff; color: var(--hero-1); }
+
+#view-overview .btn.ghost { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.28); }
+
+#view-overview .btn.ghost:hover { background: rgba(255,255,255,.15); }
+
+#view-overview .ticket { position: relative; z-index: 3; max-width: var(--maxw); margin: -34px auto 0; padding: 0 22px; }
+
+#view-overview .ticket-in { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow);
+      display: grid; grid-template-columns: repeat(5, 1fr); }
+
+#view-overview .tk { padding: 20px 18px; text-align: center; border-right: 1px solid var(--border); }
+
+#view-overview .tk:last-child { border-right: none; }
+
+#view-overview .tk b { display: block; font-size: 1.9rem; font-weight: 740; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+#view-overview .tk span { font-family: var(--mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+
+#view-overview .tk b.grad { background: linear-gradient(120deg, var(--brand), var(--comp)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+@media (max-width: 720px) {
+  #view-overview .ticket-in { grid-template-columns: repeat(2, 1fr); }
+  #view-overview .tk:nth-child(even) {border-right:none;}
+  #view-overview .tk {border-bottom:1px solid var(--border);}
+}
+
+#view-overview .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+#view-overview section { padding: 62px 0; }
+
+#view-overview .eyebrow { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .15em; color: var(--brand); margin: 0 0 12px; }
+
+#view-overview h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -.025em; font-weight: 740; margin: 0 0 14px; line-height: 1.08; }
+
+#view-overview .section-lede { font-size: 1.08rem; color: var(--ink-soft); max-width: none; margin: 0 0 8px; }
+
+#view-overview .demo { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden;
+      display: grid; grid-template-columns: 1.15fr .85fr; }
+
+@media (max-width: 840px) {
+  #view-overview .demo { grid-template-columns: 1fr; }
+}
+
+#view-overview .demo-list { padding: 20px 20px 22px; border-right: 1px solid var(--border); background: var(--surface-2);
+      --rowcols: 13px 12px 11px 15px 1fr 36px 30px 28px; }
+
+#view-overview .ui-row { display: flex; gap: 5px; margin-bottom: 5px; }
+#view-overview .fld { flex: none; display: flex; align-items: center; gap: 6px; height: 23px; padding: 0 8px;
+      border-radius: 5px; background: var(--surface); border: 1px solid var(--border);
+      font-size: .72rem; color: var(--faint); }
+#view-overview .fld.grow { flex: 1; }
+#view-overview .fld.rgx { width: 60px; font-family: var(--mono); }
+#view-overview .fld.val { color: var(--ink-soft); justify-content: space-between; }
+#view-overview .fld .caret { width: 0; height: 0; border-left: 3.5px solid transparent;
+      border-right: 3.5px solid transparent; border-top: 4px solid var(--faint); }
+#view-overview .mag { width: 9px; height: 9px; border: 1.3px solid var(--faint); border-radius: 50%;
+      position: relative; flex: none; }
+#view-overview .mag::after { content: ""; position: absolute; right: -3px; bottom: -2px; width: 4px;
+      height: 1.3px; background: var(--faint); transform: rotate(45deg); }
+#view-overview .ico { width: 23px; height: 23px; display: flex; align-items: center; justify-content: center;
+      border-radius: 5px; background: var(--surface); border: 1px solid var(--border);
+      font-size: .68rem; color: var(--faint); flex: none; }
+#view-overview .pills { display: flex; gap: 2px; margin-bottom: 8px; }
+#view-overview .pills span { flex: 1; text-align: center; font-size: .61rem; padding: 4px 2px;
+      color: var(--faint); background: var(--surface); border: 1px solid var(--border); }
+#view-overview .pills span:first-child { border-radius: 5px 0 0 5px; }
+#view-overview .pills span:last-child { border-radius: 0 5px 5px 0; }
+#view-overview .showing { font-family: var(--mono); font-size: .65rem; color: var(--muted); margin-bottom: 9px; }
+#view-overview .colhd { display: grid; grid-template-columns: var(--rowcols); gap: 6px; padding: 0 10px 5px;
+      font-family: var(--mono); font-size: .58rem; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+#view-overview .colhd .c-name { grid-column: 1 / 6; }
+#view-overview .colhd span:not(.c-name) { text-align: right; }
+
+@media (max-width: 840px) {
+  #view-overview .demo-list { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+#view-overview .demo-hd { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+#view-overview .demo-hd .cols { margin-left: auto; display: flex; gap: 14px; }
+
+#view-overview .nglist { display: flex; flex-direction: column; gap: 4px; }
+
+#view-overview .ngrow { display: grid; grid-template-columns: var(--rowcols); align-items: center; gap: 6px;
+      padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); font-size: .84rem;
+      overflow: hidden; transition: opacity .5s ease, transform .5s ease, max-height .5s ease, padding .5s ease, margin .5s ease, border-color .3s ease;
+      max-height: 46px; }
+
+#view-overview .ngrow .ic { width: 15px; height: 15px; border-radius: 3px; background: color-mix(in srgb, var(--gn) 22%, var(--surface)); border: 1px solid color-mix(in srgb,var(--gn) 45%, transparent); }
+
+#view-overview .ngrow .nm { font-weight: 550; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:flex; align-items:center; gap:7px; }
+
+#view-overview .ngrow .badge-mini { font-family: var(--mono); font-size: .6rem; padding: 1px 5px; border-radius: 4px; letter-spacing: .02em; }
+
+#view-overview .ngrow .n { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; font-size: .78rem; }
+
+#view-overview .ngrow .o { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; font-size: .78rem; }
+
+#view-overview .ngrow .g { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; font-size: .78rem; }
+#view-overview .ngrow .ck { width: 11px; height: 11px; border-radius: 2.5px; border: 1.2px solid var(--border-strong); }
+#view-overview .ngrow .st { font-size: .7rem; line-height: 1; color: var(--faint); }
+#view-overview .ngrow .sh { width: 9px; height: 11px; border: 1.2px solid var(--border-strong); border-radius: 2px 2px 60% 60%; }
+
+@media (max-width: 560px) {
+  #view-overview .demo-list { --rowcols: 15px 1fr 34px 30px 28px; }
+  #view-overview .ngrow .ck, #view-overview .ngrow .st, #view-overview .ngrow .sh { display: none; }
+  #view-overview .colhd .c-name { grid-column: 1 / 3; }
+}
+
+#view-overview .ngrow.dupe { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+
+#view-overview .ngrow.dupe .nm { color: var(--warn); }
+
+#view-overview .ngrow.dupe .badge-mini { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+
+#view-overview .ngrow.orphan { border-color: color-mix(in srgb, var(--crit) 50%, transparent); }
+
+#view-overview .ngrow.orphan .nm { color: var(--crit); }
+
+#view-overview .ngrow.orphan .o { color: var(--crit); }
+
+#view-overview .ngrow.orphan .badge-mini { color: var(--crit); background: color-mix(in srgb, var(--crit) 16%, transparent); }
+
+#view-overview .ngrow.removing { opacity: 0; transform: translateX(-14px); max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: -4px; border-color: transparent; }
+
+#view-overview .demo-panel { padding: 22px 22px 24px; display: flex; flex-direction: column; }
+
+#view-overview .score-big { font-size: 3.4rem; font-weight: 760; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; transition: color .5s; }
+
+#view-overview .score-big span { font-size: 1rem; color: var(--faint); font-weight: 500; }
+
+#view-overview .grade { font-family: var(--mono); font-size: .8rem; margin-top: 2px; transition: color .5s; }
+
+#view-overview .track { position: relative; height: 12px; border-radius: 100px; margin: 16px 0 7px; overflow: hidden;
+      background: linear-gradient(90deg, var(--crit) 0 40%, var(--warn) 40% 70%, #b7c04a 70% 90%, var(--good) 90% 100%); opacity: .92; }
+
+#view-overview .needle { position: absolute; top: -3px; width: 3px; height: 18px; border-radius: 2px; background: var(--ink);
+      box-shadow: 0 0 0 2px var(--surface); transition: left 1s cubic-bezier(.22,1,.36,1); }
+
+#view-overview .scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .6rem; color: var(--faint); }
+
+#view-overview .metrics { margin-top: 16px; display: grid; gap: 7px; flex: 1; }
+
+#view-overview .metric { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; font-size: .84rem; color: var(--ink-soft); }
+
+#view-overview .metric .sq { width: 9px; height: 9px; border-radius: 2.5px; }
+
+#view-overview .metric .v { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; transition: color .4s; }
+
+#view-overview .metric.cleared .v { color: var(--good); }
+
+#view-overview .metric.cleared { opacity: .55; }
+
+#view-overview .demo-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+
+#view-overview .act { font-family: var(--sans); font-size: .82rem; font-weight: 600; padding: 9px 14px; border-radius: 9px; cursor: pointer;
+      border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 7px; transition: all .14s; }
+
+#view-overview .act:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-ink); }
+
+#view-overview .act.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#view-overview .act.pri:hover:not(:disabled) { filter: brightness(1.06); color: #fff; }
+
+#view-overview .act:disabled { opacity: .4; cursor: not-allowed; }
+
+#view-overview .act.reset { margin-left: auto; border: none; color: var(--muted); background: transparent; }
+
+#view-overview .demo-caption { font-size: .82rem; color: var(--muted); margin: 14px 2px 0; min-height: 1.4em; }
+
+/* The demo mirrors the compact Browser surface used inside Blender. */
+#view-overview .browser-demo { display: block; padding: 12px; border: 1px solid #087c62; border-radius: 8px; background: #1b2724; color: #dce9e4; box-shadow: 0 12px 30px rgba(0,0,0,.16); }
+#view-overview .browser-global { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 9px; border: 1px solid #087c62; border-radius: 4px; color: #b8c8c2; font-size: .73rem; }
+#view-overview .browser-global .dots { margin-left: auto; color: #7f968e; letter-spacing: 1px; }
+#view-overview .browser-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 8px 0; border: 1px solid #087c62; border-radius: 4px; overflow: hidden; }
+#view-overview .browser-tabs button { border: 0; border-radius: 0; padding: 6px 8px; background: #1b302b; color: #c1d0ca; font: 600 .72rem var(--sans); cursor: pointer; }
+#view-overview .browser-tabs button.active { background: #079c76; color: #fff; }
+#view-overview .browser-box { padding: 8px; border: 1px solid #078365; border-radius: 4px; background: #1d2b27; }
+#view-overview .browser-title { display: flex; align-items: center; gap: 7px; margin: 0 0 7px; font-size: .78rem; font-weight: 600; color: #eef7f3; }
+#view-overview .browser-title .node-icon { width: 14px; height: 14px; border: 1px solid #b7d0c6; border-radius: 3px; position: relative; }
+#view-overview .browser-title .node-icon::after { content: ''; position: absolute; left: 3px; right: 3px; top: 4px; height: 1px; background: #b7d0c6; box-shadow: 0 3px #b7d0c6; }
+#view-overview .browser-filter { display: grid; grid-template-columns: 1fr auto auto; gap: 5px; margin-bottom: 7px; }
+#view-overview .browser-input, #view-overview .browser-icon { min-height: 25px; padding: 0 8px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #087c62; border-radius: 4px; background: #16211f; color: #8fa49b; font: .7rem var(--sans); }
+#view-overview .browser-icon { justify-content: center; width: 28px; padding: 0; font-size: .82rem; }
+#view-overview .browser-stats { margin: 0 0 7px; color: #bdcbc5; font: .66rem var(--sans); }
+#view-overview .browser-table { overflow-x: auto; }
+#view-overview .browser-columns, #view-overview .browser-demo .ngrow { min-width: 520px; display: grid; grid-template-columns: 18px 20px 20px 18px minmax(150px, 1fr) 55px 46px 42px 20px; align-items: center; gap: 5px; }
+#view-overview .browser-demo .ngrow { grid-template-columns: 18px 20px 20px 18px minmax(150px, 1fr) 55px 46px 42px 20px; }
+#view-overview .browser-demo .ngrow .ck, #view-overview .browser-demo .ngrow .st, #view-overview .browser-demo .ngrow .sh { display: block; }
+#view-overview .browser-columns { padding: 0 7px 4px; color: #c1d0ca; font: .6rem var(--mono); text-transform: uppercase; letter-spacing: .04em; }
+#view-overview .browser-columns span:not(:nth-child(4)) { text-align: center; }
+#view-overview .browser-demo .nglist { display: flex; flex-direction: column; gap: 2px; }
+#view-overview .browser-demo .ngrow { max-height: 33px; padding: 5px 7px; border: 1px solid transparent; border-radius: 3px; background: #1a2824; color: #dce9e4; font-size: .74rem; transition: opacity .35s ease, transform .35s ease, max-height .35s ease, padding .35s ease, margin .35s ease; }
+#view-overview .browser-demo .ngrow.selected { background: #079c76; color: #fff; }
+#view-overview .browser-demo .ngrow.dupe { border-color: rgba(224,178,77,.5); }
+#view-overview .browser-demo .ngrow.orphan { border-color: rgba(232,114,108,.6); }
+#view-overview .browser-demo .ngrow.removing { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: -2px; border-color: transparent; }
+#view-overview .browser-demo .ck { width: 13px; height: 13px; border: 1px solid #168d75; border-radius: 2px; }
+#view-overview .browser-demo .st { color: #dfe9e4; font-size: .9rem; }
+#view-overview .browser-demo .sh { width: 11px; height: 13px; border: 1px solid #7e9c91; border-radius: 2px 2px 55% 55%; }
+#view-overview .browser-demo .ic { width: 13px; height: 13px; background: #b7c8c1; border-radius: 2px; }
+#view-overview .browser-demo .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#view-overview .browser-demo .n, #view-overview .browser-demo .g, #view-overview .browser-demo .o { text-align: right; font: .7rem var(--mono); }
+#view-overview .browser-demo .badge-mini { margin-left: 4px; color: #ffd274; font: .58rem var(--mono); }
+#view-overview .browser-actions { display: flex; flex-wrap: wrap; gap: 5px; padding-top: 8px; }
+#view-overview .browser-actions button { flex: 1 1 120px; min-height: 26px; border: 1px solid #087c62; border-radius: 3px; background: #192b26; color: #dce9e4; font: .68rem var(--sans); cursor: pointer; }
+#view-overview .browser-actions button:hover:not(:disabled) { background: #0a8f6d; color: #fff; }
+#view-overview .browser-actions .act.pri { background: #079c76; border-color: #079c76; color: #fff; }
+#view-overview .browser-actions button:disabled { opacity: .35; cursor: not-allowed; }
+#view-overview .browser-detail { margin-top: 8px; padding: 8px; border-top: 1px solid #087c62; color: #cfddd7; }
+#view-overview .browser-detail-title { margin-bottom: 7px; font-size: .75rem; font-weight: 600; }
+#view-overview .browser-detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 7px; color: #b8c8c2; font: .66rem var(--mono); }
+#view-overview .browser-detail-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+#view-overview .browser-detail-actions span { padding: 5px; border: 1px solid #087c62; border-radius: 3px; text-align: center; color: #e1ece7; font-size: .65rem; }
+#view-overview .browser-section-title { margin-top: 8px; padding: 6px 0; border-top: 1px solid #087c62; color: #eef7f3; font-size: .72rem; font-weight: 600; }
+#view-overview .browser-health { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-top: 8px; padding: 8px 10px; border: 1px solid #087c62; border-radius: 4px; background: #16211f; }
+#view-overview .browser-score { font: 700 1.2rem var(--mono); color: #f0c25d; white-space: nowrap; }
+#view-overview .browser-score span { font-size: .66rem; font-weight: 400; color: #9db0a7; }
+#view-overview .browser-grade { color: #f0c25d; font-size: .7rem; }
+#view-overview .browser-health .track { height: 7px; margin: 0; opacity: .9; }
+#view-overview .browser-health .scale, #view-overview .browser-health .metrics { display: none; }
+#view-overview .browser-health .demo-actions { margin: 0; display: flex; gap: 4px; }
+#view-overview .browser-health .act { min-height: 25px; padding: 4px 8px; border: 1px solid #087c62; border-radius: 3px; background: #1c302a; color: #dce9e4; font-size: .65rem; }
+#view-overview .browser-health .act.pri { background: #079c76; border-color: #079c76; }
+#view-overview .browser-health .act.reset { margin: 0; }
+@media (max-width: 650px) {
+  #view-overview .browser-demo { padding: 8px; }
+  #view-overview .browser-health { grid-template-columns: 1fr 1fr; }
+  #view-overview .browser-health .track { grid-column: 1 / -1; grid-row: 2; }
+  #view-overview .browser-health .demo-actions { grid-column: 1 / -1; grid-row: 3; }
+  #view-overview .browser-detail-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Keep the demo visually native to the documentation site, while retaining the add-on's compact density. */
+#view-overview .browser-demo { background: var(--surface); border-color: var(--border-strong); color: var(--ink); box-shadow: var(--shadow); }
+#view-overview .browser-global, #view-overview .browser-box, #view-overview .browser-health { border-color: var(--border); background: var(--surface-2); }
+#view-overview .browser-global, #view-overview .browser-input, #view-overview .browser-icon { color: var(--muted); }
+#view-overview .browser-global input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; }
+#view-overview .browser-global input::placeholder { color: var(--muted); opacity: 1; }
+#view-overview .browser-input { background: var(--surface); }
+#view-overview .browser-global, #view-overview .browser-input, #view-overview .browser-icon, #view-overview .browser-tabs, #view-overview .browser-box, #view-overview .browser-health { border-color: var(--border-strong); }
+#view-overview .browser-tabs button { background: var(--surface); color: var(--muted); }
+#view-overview .browser-tabs button.active, #view-overview .browser-actions .act.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+#view-overview .browser-box, #view-overview .browser-detail { color: var(--ink-soft); }
+#view-overview .browser-title, #view-overview .browser-section-title { color: var(--ink); }
+#view-overview .browser-input { width: 100%; }
+#view-overview .browser-input input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; }
+#view-overview .browser-input input::placeholder { color: var(--muted); opacity: 1; }
+#view-overview .browser-icon, #view-overview .browser-detail-actions button, #view-overview .browser-actions button { border-color: var(--border-strong); background: var(--surface); color: var(--ink-soft); }
+#view-overview .browser-icon:hover, #view-overview .browser-detail-actions button:hover, #view-overview .browser-actions button:hover:not(:disabled) { border-color: var(--accent); color: var(--ink); background: var(--accent-wash); }
+#view-overview .browser-demo .ngrow { background: var(--surface); color: var(--ink-soft); }
+#view-overview .browser-demo .ngrow.selected { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); }
+#view-overview .browser-demo .ngrow.dupe { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+#view-overview .browser-demo .ngrow.orphan { border-color: color-mix(in srgb, var(--crit) 60%, transparent); }
+#view-overview .browser-detail { border-top-color: var(--border-strong); }
+#view-overview .browser-detail-actions button { min-height: 28px; padding: 5px; border: 1px solid var(--border-strong); border-radius: 3px; text-align: center; font: .65rem var(--sans); cursor: pointer; }
+#view-overview .rename-editor { display: flex; gap: 5px; margin: 0 0 7px; }
+#view-overview .rename-editor[hidden] { display: none; }
+#view-overview .rename-editor input { flex: 1; min-width: 0; border: 1px solid var(--border-strong); border-radius: 3px; padding: 5px 7px; background: var(--surface-2); color: var(--ink); font: .68rem var(--sans); }
+#view-overview .rename-editor button { border: 1px solid var(--accent); border-radius: 3px; padding: 5px 9px; background: var(--accent); color: #fff; font: 600 .65rem var(--sans); cursor: pointer; }
+#view-overview .browser-score, #view-overview .browser-grade { color: var(--warn); }
+#view-overview .browser-health .demo-actions { align-items: stretch; gap: 6px; }
+#view-overview .browser-health .demo-actions #btn-merge, #view-overview .browser-health .demo-actions #btn-purge { min-height: 42px; min-width: 170px; padding: 10px 16px; font-size: .75rem; font-weight: 700; }
+#view-overview .browser-health .demo-actions #btn-purge { background: var(--surface); color: var(--ink-soft); }
+#view-overview .browser-health .demo-actions #btn-purge:not(:disabled):hover { background: var(--accent-wash); color: var(--ink); }
+#view-overview .browser-health .demo-actions .reset { align-self: center; }
+@media (max-width: 650px) {
+  #view-overview .browser-health .demo-actions #btn-merge, #view-overview .browser-health .demo-actions #btn-purge { flex: 1 1 145px; min-width: 0; }
+}
+
+#view-overview .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 26px; }
+
+@media (max-width: 840px) {
+  #view-overview .cards { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 560px) {
+  #view-overview .cards { grid-template-columns: 1fr; }
+}
+
+#view-overview .card { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; padding: 18px; box-shadow: var(--shadow);
+      transition: transform .16s ease, border-color .16s ease; }
+
+#view-overview .card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+#view-overview .tool-showcase { grid-template-columns: 1fr; gap: 22px; }
+#view-overview .tool-showcase .card { padding: 22px; }
+#view-overview .tool-showcase .card:hover { transform: none; }
+#view-overview .tool-showcase .viz { max-width: 420px; }
+#view-overview .tool-shot { margin-top: 18px; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 8px; background: #101419; }
+#view-overview .tool-shot img { display: block; width: 100%; height: auto; }
+#view-overview .tool-shot.health { aspect-ratio: 3.65/1; }
+#view-overview .tool-shot.duplicate { aspect-ratio: 6.75/1; }
+#view-overview .tool-shot.health img, #view-overview .tool-shot.duplicate img { width: 100%; height: 100%; object-fit: cover; }
+#view-overview .tool-shot.health img { object-position: top; }
+#view-overview .tool-shot.duplicate img { object-position: bottom; }
+#view-overview .tool-shot.library { aspect-ratio: 2.88/1; }
+#view-overview .tool-shot.library img { width: 100%; height: 100%; object-fit: cover; object-position: bottom; }
+
+#view-overview .card .viz { height: 62px; margin: -2px 0 12px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border);
+      overflow: hidden; display: block; }
+
+#view-overview .card .kicker { font-family: var(--mono); font-size: .64rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+
+#view-overview .card h4 { margin: 5px 0 6px; font-size: 1.02rem; letter-spacing: -.01em; }
+
+#view-overview .card p { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+
+#view-overview .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; }
+
+@media (max-width: 900px) {
+  #view-overview .shots { grid-template-columns: 1fr 1fr; }
+  #view-overview .shots .shot[style] { grid-column: span 2 !important; }
+}
+
+@media (max-width: 600px) {
+  #view-overview .shots { grid-template-columns: 1fr; }
+  #view-overview .shots .shot[style] { grid-column: span 1 !important; }
+}
+
+#view-overview .shot-frame {
+  position: relative; aspect-ratio: 4/3; border-radius: 13px; overflow: hidden;
+  background: var(--surface-2); border: 1.5px dashed var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+}
+
+#view-overview .shot-ph {
+  font-family: var(--mono); font-size: .74rem; letter-spacing: .04em; color: var(--faint);
+}
+
+#view-overview .shot-cap { margin: 10px 2px 0; font-size: .86rem; color: var(--ink-soft); }
+#view-overview .shot-cap strong { color: var(--ink); }
+#view-overview .shot-frame { background: #101419; border-style: solid; }
+#view-overview .shot-frame img { display: block; width: 100%; height: auto; object-fit: contain; background: #101419; }
+#view-overview .shots { align-items: start; }
+#view-overview .shot { align-self: start; }
+#view-overview .shot-frame:has(img) { aspect-ratio: auto; display: block; }
+#view-overview .shot-frame:has(img) img { height: auto; aspect-ratio: auto; }
+#view-overview .manager-video-slot { aspect-ratio: 16/9; margin-top: 24px; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 10px; background: #101419; box-shadow: var(--shadow); }
+#view-overview .manager-video { display: block; width: 100%; height: 100%; object-fit: cover; background: #101419; }
+#view-overview .manager-video-caption { margin: 10px 2px 0; font-size: .86rem; color: var(--ink-soft); }
+#view-overview .shot.featured-manager { grid-column: 1 / -1; }
+#view-overview .shot.featured-manager .shot-frame { border-color: var(--border-strong); box-shadow: var(--shadow); }
+#view-overview .shot.featured-manager .shot-cap { font-size: .95rem; }
+
+#view-overview .tag { font-family: var(--mono); font-size: .6rem; padding: 2px 7px; border-radius: 100px; font-weight: 600; letter-spacing: .02em; }
+
+#view-overview .tag.new { color: var(--accent-ink); background: var(--accent-wash); }
+
+#view-overview .tag.neutral { color: var(--muted); background: var(--surface-2); border: 1px solid var(--border-strong); }
+
+#view-overview .editor-spec {
+  border: 1px solid var(--border); border-left: 3px solid var(--border-strong);
+  border-radius: 0 14px 14px 0; background: var(--surface); box-shadow: var(--shadow);
+  padding: 18px 20px; margin-top: 16px;
+}
+
+#view-overview .es-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+#view-overview .es-head .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+#view-overview .es-head h4 { margin: 0; font-size: 1.05rem; letter-spacing: -.01em; }
+#view-overview .es-head .tag { margin-left: auto; }
+
+#view-overview .es-cols { margin: 0 0 10px; font-size: .88rem; color: var(--ink-soft); }
+
+#view-overview .es-list { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+#view-overview .es-list li { font-size: .88rem; color: var(--ink-soft); }
+
+#view-overview .es-bulk { margin: 0; font-size: .84rem; color: var(--muted); padding-top: 10px; border-top: 1px solid var(--border); }
+
+#view-overview .arc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 24px; counter-reset: st; }
+
+@media (max-width: 720px) {
+  #view-overview .arc { grid-template-columns: 1fr 1fr; }
+}
+
+#view-overview .step { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 16px; counter-increment: st; }
+
+#view-overview .step::before { content: counter(st); font-family: var(--mono); font-weight: 700; font-size: .8rem; color: #fff; background: var(--accent);
+      width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 11px; }
+
+#view-overview .step h4 { margin: 0 0 5px; font-size: .96rem; }
+
+#view-overview .step p { margin: 0; font-size: .84rem; color: var(--ink-soft); }
+#view-overview .workflow-visual { grid-template-columns: 1fr; gap: 18px; }
+#view-overview .workflow-visual .step { padding: 20px; }
+#view-overview .workflow-shot { margin-top: 16px; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 8px; background: #101419; }
+#view-overview .workflow-shot img { display: block; width: 100%; height: auto; }
+
+#view-overview .personas { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-top: 24px; }
+
+@media (max-width: 900px) {
+  #view-overview .personas { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 560px) {
+  #view-overview .personas { grid-template-columns: 1fr; }
+}
+
+#view-overview .persona { border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 12px 12px 0; padding: 15px 17px; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+#view-overview .persona h4 { margin: 0 0 5px; font-size: .96rem; }
+
+#view-overview .persona p { margin: 0; font-size: .85rem; color: var(--muted); }
+
+@media (max-width: 600px) {
+  #view-overview .hero-in { padding: 44px 20px 78px; }
+  #view-overview .signal-wrap {
+    width: 118%;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+}
+
+
+
+
+  
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html" class="active">Overview</a>
+      <a href="start.html">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+  </div>
+</header>
+
+<div id="view-overview">
+  <div class="hero">
+    <div class="signal-wrap" aria-hidden="true">
+      <svg viewBox="0 0 1000 340" preserveAspectRatio="none">
+        <path class="signal-path w1" d="M -30,260 C 160,190 260,300 430,230 S 640,140 760,190 S 960,150 1030,190" />
+        <path class="signal-path w2" d="M -30,80  C 140,140 300,40  480,110 S 700,60  860,120 S 990,90  1030,110" />
+        <path class="signal-path w3" d="M -30,190 C 180,230 330,150 500,190 S 720,240 880,190 S 990,200 1030,190" />
+        <path class="signal-path w4" d="M -30,40  C 120,10  260,70  420,30  S 620,-10 780,40  S 960,20 1030,40" />
+        <path class="signal-path w5" d="M -30,320 C 200,280 350,330 520,290 S 760,250 900,300 S 990,290 1030,300" />
+      </svg>
+    </div>
+    <div class="hero-in">
+      <p class="hero-eyebrow">Blender add-on · Geometry, Shader &amp; Compositor · 4.2 – 5.x</p>
+      <h1>A node group manager for Blender.</h1>
+      <p class="tagline">Browse, audit, and clean up Geometry, Shader, and Compositor
+        node groups from a single sidebar panel.</p>
+      <p class="lede">See every node group in the file, filter the list in seconds, and inspect
+        exactly where each group is used. File Health scores the file from 0–100, while Duplicate
+        Finder consolidates matching <code>.001</code> copies only after every user is remapped.</p>
+      <div class="btnrow">
+        <a class="btn primary" href="#inside">See what's inside</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticket">
+    <div class="ticket-in">
+      <div class="tk"><b>3</b><span>node editors</span></div>
+      <div class="tk"><b>10</b><span>tools</span></div>
+      <div class="tk"><b class="grad">0–100</b><span>health score</span></div>
+      <div class="tk"><b>4.2+</b><span>Blender</span></div>
+      <div class="tk"><b>Offline</b><span>no network calls</span></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section id="demo">
+      <p class="eyebrow">Interactive demo</p>
+      <h2>Clean the sample file</h2>
+      <p class="section-lede">This interactive sample mirrors the add-on's Geometry browser. It contains one duplicate copy and one orphaned group,
+        giving the sample a score of <strong>43&nbsp;/&nbsp;100</strong>. Merge the duplicate, clean the
+        orphan, and watch the list and score update after each step.</p>
+
+      <div class="demo browser-demo">
+        <label class="browser-global"><span class="mag"></span><input id="demo-global-search" type="search" placeholder="Search All Trees…" aria-label="Search all trees"><span class="dots">•••</span></label>
+        <div class="browser-tabs" role="tablist" aria-label="Node editor managers">
+          <button class="active" type="button" role="tab" aria-selected="true">Geometry</button>
+          <button type="button" role="tab" aria-selected="false">Shader</button>
+          <button type="button" role="tab" aria-selected="false">Compositor</button>
+        </div>
+        <div class="browser-box">
+          <div class="browser-title"><span class="node-icon"></span>Preview / Browser</div>
+          <div class="browser-filter">
+            <label class="browser-input"><span class="mag"></span><input id="demo-search" type="search" placeholder="Search" aria-label="Search node groups"></label>
+            <button class="browser-icon" id="demo-view-toggle" type="button" aria-label="Toggle list view">☷</button><button class="browser-icon" id="demo-refresh" type="button" aria-label="Refresh browser">⟳</button>
+          </div>
+          <div class="browser-stats">Showing <b id="d-shown">7</b>/<b id="d-total">7</b> &nbsp;·&nbsp; Selected: 0</div>
+          <div class="browser-table">
+            <div class="browser-columns"><span>□</span><span>☆</span><span>♢</span><span>▣</span><span>Name</span><span>Groups</span><span>Nodes</span><span>Obj</span><span></span></div>
+            <div class="nglist" id="nglist">
+              <div class="ngrow selected" data-k="autosmooth"><span class="ck"> </span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">Auto Smooth</span><span class="g">–</span><span class="n">10</span><span class="o">46</span><span></span></div>
+              <div class="ngrow" data-k="fire"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">FIRE</span><span class="g">1</span><span class="n">3</span><span class="o">1</span><span></span></div>
+              <div class="ngrow" data-k="firegn"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">Fire GN</span><span class="g">–</span><span class="n">150</span><span class="o">1</span><span></span></div>
+              <div class="ngrow" data-k="geo"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">Geometry Nodes</span><span class="g">–</span><span class="n">11</span><span class="o">4</span><span></span></div>
+              <div class="ngrow dupe" data-k="geo001"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">Geometry Nodes.001 <span class="badge-mini">DUPE</span></span><span class="g">–</span><span class="n">161</span><span class="o">1</span><span></span></div>
+              <div class="ngrow" data-k="smooth"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">Smooth by Angle</span><span class="g">–</span><span class="n">14</span><span class="o">1</span><span></span></div>
+              <div class="ngrow orphan" data-k="temp"><span class="ck"></span><span class="st">☆</span><span class="sh"></span><span class="ic"></span><span class="nm">TEMP_probeA <span class="badge-mini">ORPHAN</span></span><span class="g">–</span><span class="n">0</span><span class="o">0</span><span></span></div>
+            </div>
+          </div>
+          <div class="browser-detail">
+            <div class="browser-detail-title">▣ &nbsp;Active Group: <span id="active-group-name">Auto Smooth</span></div>
+            <div class="rename-editor" id="rename-editor" hidden><input id="rename-input" type="text" aria-label="New group name"><button id="rename-save" type="button">Save</button><button id="rename-cancel" type="button">Cancel</button></div>
+            <div class="browser-detail-actions"><button id="btn-open" type="button">Open</button><button id="btn-rename" type="button">✎ Rename</button><button id="btn-remove-active" type="button">× Remove</button><button id="btn-select-users" type="button">⚑ Select Users</button><button id="btn-assign" type="button">＋ Assign to 9 Obj</button><button id="btn-remove-nested" type="button">▣ Remove+Nested</button></div>
+            <div class="browser-detail-grid"><span>▣ N:10</span><span>▣ G:0</span><span>▣ Obj:46</span><span>↻ Version: —</span><span>⌁ Changelog</span><span>⌁ Dependencies</span></div>
+          </div>
+          <div class="browser-section-title">▾ &nbsp;Selection Tools (0)</div>
+          <div class="browser-actions">
+            <button class="act" type="button">Remove</button><button class="act" type="button">Export</button>
+            <button class="act" type="button">Fake ON</button><button class="act" type="button">Fake OFF</button>
+            <button class="act" type="button">Mark Asset</button>
+          </div>
+        </div>
+        <div class="browser-health">
+          <div class="browser-score" id="score">43<span>/100</span></div>
+          <div><div class="browser-grade" id="grade">Needs Cleanup</div><div class="track"><span class="needle" id="needle" style="left:43%"></span></div></div>
+          <div class="demo-actions"><button class="act pri" id="btn-merge" type="button">⤿ Merge duplicates</button><button class="act" id="btn-purge" type="button" disabled>Clean orphans</button><button class="act reset" id="btn-reset" type="button">Reset</button></div>
+        </div>
+      </div>
+      <p class="demo-caption" id="caption">One duplicate copy of <strong>Geometry Nodes</strong> and one orphaned group. Start with <strong>Merge duplicates</strong>.</p>
+    </section>
+    <section id="inside">
+      <p class="eyebrow">One system, three editors</p>
+      <h2>A manager for every node workflow</h2>
+      <p class="section-lede">Press <kbd>N</kbd> in the Geometry, Shader, or Compositor editor and
+        the matching <strong>GN Manager</strong>, <strong>SN Manager</strong>, or
+        <strong>CN Manager</strong> opens automatically. In the 3D Viewport, all three are available
+        from one <strong>Nodes Manager</strong> tab with a selector at the top.</p>
+
+      <div class="manager-video-slot">
+        <video class="manager-video" autoplay muted loop playsinline controls preload="metadata"
+          poster="assets/media/ngm-preview-poster.webp"
+          aria-label="OEBS Node Group Manager walkthrough in Blender">
+          <source src="assets/media/ngm-preview.mp4" type="video/mp4">
+          Your browser does not support embedded video.
+        </video>
+      </div>
+      <p class="manager-video-caption"><strong>38-second manager walkthrough.</strong> See the browser, active-group tools, cleanup panels, and file-wide utilities working inside Blender.</p>
+
+      <div class="editor-spec" style="border-left-color:var(--gn)">
+        <div class="es-head">
+          <span class="dot" style="background:var(--gn)"></span>
+          <h4>Geometry Nodes</h4>
+          <span class="tag neutral">GN Manager</span>
+        </div>
+        <p class="es-cols"><strong>Columns:</strong> Name · Nodes · Groups (nested count) · Objects (users)</p>
+        <ul class="es-list">
+          <li>Filter by plain text or full regex; sort by name, users, node count, nesting, references, or complexity</li>
+          <li>Toggle filters for Unused, Orphaned, Favorites, Selected, and the active object; switch to a collapsible hierarchy Tree View</li>
+          <li>Detail card for the active group: node / link / nested / object counts, complexity score, Validate</li>
+          <li>Open, Rename, Duplicate, Batch Replace, Select Users, Quick-Assign to selected objects</li>
+          <li>Remove, or Remove + Nested with a preview of everything that goes</li>
+          <li>Version tag, Socket Descriptions, Changelog, Snapshot, and a Dependencies tree (parents and children)</li>
+        </ul>
+        <p class="es-bulk"><strong>Bulk:</strong> Scan Unused Sockets · Version Overview · Remove Orphaned · Remove All · Import from <code style="font-size:.85em">.blend</code> · Export Team Manifest (JSON/CSV)</p>
+      </div>
+
+      <div class="editor-spec" style="border-left-color:var(--sn)">
+        <div class="es-head">
+          <span class="dot" style="background:var(--sn)"></span>
+          <h4>Shader Nodes</h4>
+          <span class="tag neutral">SN Manager</span>
+        </div>
+        <p class="es-cols"><strong>Columns:</strong> Name · Nodes · Groups (nested count) · Mats · Objects</p>
+        <ul class="es-list">
+          <li>Same browsing, filtering, and cleanup tools as Geometry, applied to material node groups</li>
+          <li>The extra <strong>Mats</strong> column shows how many materials use a group, alongside how many objects those materials reach — a group with 0 in either column is safe to remove</li>
+        </ul>
+        <p class="es-bulk"><strong>Bulk:</strong> the same set as Geometry — Scan Unused Sockets · Version Overview · Remove Orphaned · Remove All · Import</p>
+      </div>
+
+      <div class="editor-spec" style="border-left-color:var(--comp)">
+        <div class="es-head">
+          <span class="dot" style="background:var(--comp)"></span>
+          <h4>Compositor</h4>
+          <span class="tag neutral">CN Manager</span>
+        </div>
+        <p class="es-cols">Split into two halves, because compositing is scene-specific:</p>
+        <ul class="es-list">
+          <li><strong>Scene Browser</strong> (top) — every scene in the file, with an <strong>Enable / Disable Compositor</strong> toggle, an <strong>Open Compositor</strong> button, and node counts (Total / Active / Muted)</li>
+          <li><strong>Compositor Group Browser</strong> (bottom) — its own filterable, sortable list of compositor node groups, with a <strong>Scenes</strong> column counting direct and nested reachability</li>
+          <li><strong>This Scene Only</strong> (on by default) narrows that list to groups actually reachable from the scene selected above — turn it off to see every compositor group in the file</li>
+        </ul>
+        <p class="es-bulk"><strong>Bulk:</strong> Scan Unused Sockets · Version Overview · Remove Orphaned · Remove All · Import</p>
+      </div>
+    </section>
+    <section id="shots">
+      <p class="eyebrow">The managers</p>
+      <h2>One familiar layout across three editors</h2>
+      <p class="section-lede">Geometry, Shader, and Compositor share the same browse, inspect,
+        and act pattern, while each manager surfaces the usage counts that matter to its editor.</p>
+      <div class="shots">
+        <div class="shot featured-manager">
+          <div class="shot-frame">
+            <img src="assets/screenshots/ngm-geometry-browser.png" alt="Geometry Nodes manager showing the Preview / Browser group list and Active Group controls" loading="lazy">
+          </div>
+          <p class="shot-cap"><strong>Geometry Nodes Manager</strong></p>
+        </div>
+        <div class="shot featured-manager">
+          <div class="shot-frame">
+            <img src="assets/screenshots/ngm-shader-browser.png" alt="Shader Nodes manager showing material node groups with Nodes, Groups, Mats, and Obj columns" loading="lazy">
+          </div>
+          <p class="shot-cap"><strong>Shader Nodes Manager</strong></p>
+        </div>
+        <div class="shot featured-manager">
+          <div class="shot-frame">
+            <img src="assets/screenshots/ngm-compositor-browser.png" alt="Compositor manager showing the Scene Browser and Compositor Group Browser" loading="lazy">
+          </div>
+          <p class="shot-cap"><strong>Compositor Nodes Manager</strong></p>
+        </div>
+      </div>
+    </section>
+    <section id="beyond-browser">
+      <p class="eyebrow">File-wide tools</p>
+      <h2>Audit, consolidate, and reuse</h2>
+      <p class="section-lede">Go beyond day-to-day browsing with tools that merge duplicate graphs
+        safely, audit the entire file, and bring trusted groups in from reusable libraries.</p>
+      <div class="cards tool-showcase">
+        <div class="card">
+          <svg class="viz" viewBox="0 0 300 62" preserveAspectRatio="none" aria-hidden="true"><g id="viz-dupe"></g></svg>
+          <div class="kicker">Cleanup · <span class="tag new">New in 2.0</span></div>
+          <h4>Duplicate Finder</h4>
+          <p>Compares full graph topology instead of names alone, identifies matching <code style="font-size:.85em">.001</code> copies, and remaps every object, material, and parent group before removing the extras.</p>
+          <div class="tool-shot duplicate"><img src="assets/screenshots/ngm-file-health-and-duplicate-finder.png" alt="Duplicate Finder panel showing a completed duplicate scan" loading="lazy"></div>
+        </div>
+        <div class="card">
+          <svg class="viz" viewBox="0 0 300 62" preserveAspectRatio="none" aria-hidden="true"><g id="viz-health"></g></svg>
+          <div class="kicker">Audit · <span class="tag new">New in 2.0</span></div>
+          <h4>File Health</h4>
+          <p>Score the whole file from 0–100 across duplicates, orphans, broken references, unused sockets, and stray objects, with direct actions for anything that needs attention.</p>
+          <div class="tool-shot health"><img src="assets/screenshots/ngm-file-health-and-duplicate-finder.png" alt="File Health panel showing the score and file diagnostics" loading="lazy"></div>
+        </div>
+        <div class="card">
+          <svg class="viz" viewBox="0 0 300 62" preserveAspectRatio="none" aria-hidden="true"><g id="viz-lib"></g></svg>
+          <div class="kicker">Reuse</div>
+          <h4>Library Browser</h4>
+          <p>Index a folder of <code style="font-size:.85em">.blend</code> files, search the available groups, and import one without opening its source file. Cached results keep repeat scans fast.</p>
+          <div class="tool-shot library"><img src="assets/screenshots/ngm-library-browser-selected-group.png" alt="Library Browser showing a selected node group and its source blend file" loading="lazy"></div>
+        </div>
+      </div>
+    </section>
+    <section id="workflow">
+      <p class="eyebrow">Day-to-day workflow</p>
+      <h2>From finding a group to shipping it</h2>
+      <div class="arc workflow-visual">
+        <div class="step">
+          <h4>Configure the browser</h4>
+          <p>Set the row count and column widths so names, nesting, node counts, and object usage remain easy to compare.</p>
+          <div class="workflow-shot"><img src="assets/screenshots/ngm-browser-column-widths.png" alt="Column Widths panel with controls for Name, Groups, Nodes, Obj, and Rows" loading="lazy"></div>
+        </div>
+        <div class="step">
+          <h4>Select and act</h4>
+          <p>Select one or more groups, then export them, protect them with Fake User, mark them as assets, or remove them.</p>
+          <div class="workflow-shot"><img src="assets/screenshots/ngm-selection-tools.png" alt="Selection Tools panel with Remove, Export, Fake User, and Mark Asset controls" loading="lazy"></div>
+        </div>
+        <div class="step">
+          <h4>Run batch maintenance</h4>
+          <p>Scan unused sockets, review versions, remove orphaned data, or rename multiple groups in one pass.</p>
+          <div class="workflow-shot"><img src="assets/screenshots/ngm-cleanup-and-batch-tools.png" alt="Cleanup and Batch panel showing Remove Orphaned and other cleanup controls" loading="lazy"></div>
+        </div>
+        <div class="step">
+          <h4>Diagnose and exchange</h4>
+          <p>Resolve stray data, import groups from another file, search across libraries, or hot-swap a group in place.</p>
+          <div class="workflow-shot"><img src="assets/screenshots/ngm-diagnostics-and-exchange.png" alt="Diagnostics and Import and Exchange panels with stray-object cleanup, cross-file search, hot swap, and blend import tools" loading="lazy"></div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <p class="eyebrow">Who it's for</p>
+      <h2>Built for node-heavy production files</h2>
+      <div class="personas">
+        <div class="persona"><h4>Technical artists</h4><p>Managing 50+ node groups and deciding which are safe to delete.</p></div>
+        <div class="persona"><h4>Shader artists</h4><p>Large material libraries where naming and versioning genuinely matter.</p></div>
+        <div class="persona"><h4>VFX artists</h4><p>Multi-scene compositor setups across complex production files.</p></div>
+        <div class="persona"><h4>Asset creators</h4><p>Auditing, cleaning, and exporting node group collections for distribution.</p></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  
+  // ---------- Interactive cleanup demo (Overview) ----------
+  const rows = {}; document.querySelectorAll('#nglist .ngrow').forEach(r => rows[r.dataset.k] = r);
+  const scoreEl = document.getElementById('score'), gradeEl = document.getElementById('grade'),
+        needle = document.getElementById('needle'), caption = document.getElementById('caption'),
+        vDupe = document.getElementById('v-dupe'), vOrphan = document.getElementById('v-orphan'), vTotal = document.getElementById('v-total'),
+        mDupe = document.getElementById('m-dupe'), mOrphan = document.getElementById('m-orphan'),
+        btnMerge = document.getElementById('btn-merge'), btnPurge = document.getElementById('btn-purge'), btnReset = document.getElementById('btn-reset');
+
+  const dShown = document.getElementById('d-shown'), dTotal = document.getElementById('d-total');
+  const demoSearch = document.getElementById('demo-search'), globalSearch = document.getElementById('demo-global-search');
+  const activeName = document.getElementById('active-group-name'), renameEditor = document.getElementById('rename-editor'), renameInput = document.getElementById('rename-input');
+  let activeRow = document.querySelector('#nglist .ngrow.selected') || document.querySelector('#nglist .ngrow');
+  function rowName(row) { const name = row && row.querySelector('.nm'); return name ? Array.from(name.childNodes).filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() : ''; }
+  function setActive(row) {
+    if (!row) return;
+    activeRow = row;
+    Object.values(rows).forEach(item => { const selected = item === row; item.classList.toggle('selected', selected); item.setAttribute('aria-selected', selected ? 'true' : 'false'); });
+    if (activeName) activeName.textContent = rowName(row);
+  }
+  function setShown(n, total = n) { if (dShown) dShown.textContent = n; if (dTotal) dTotal.textContent = total; }
+  function filterRows(query) {
+    const needle = query.trim().toLowerCase(); let visible = 0;
+    Object.values(rows).forEach(row => { const match = !needle || rowName(row).toLowerCase().includes(needle); row.hidden = !match; if (match && !row.classList.contains('removing')) visible += 1; });
+    setShown(visible, Object.values(rows).filter(row => !row.classList.contains('removing')).length);
+    if (activeRow && activeRow.hidden) setActive(Object.values(rows).find(row => !row.hidden && !row.classList.contains('removing')));
+  }
+  function grade(s) {
+    if (s >= 90) return ['Excellent', 'var(--good)'];
+    if (s >= 70) return ['Good', 'var(--good)'];
+    if (s >= 40) return ['Needs Cleanup', 'var(--warn)'];
+    return ['Critical', 'var(--crit)'];
+  }
+  function setScore(target) {
+    const [g, c] = grade(target);
+    gradeEl.textContent = g; gradeEl.style.color = c;
+    needle.style.left = target + '%';
+    const from = parseInt(scoreEl.firstChild.textContent, 10) || 0;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { scoreEl.firstChild.textContent = target; scoreEl.style.color = c; return; }
+    const t0 = performance.now(), dur = 900;
+    (function tick(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      scoreEl.firstChild.textContent = Math.round(from + (target - from) * eased);
+      scoreEl.style.color = c;
+      if (p < 1) requestAnimationFrame(tick);
+    })(performance.now());
+  }
+  function collapse(keys, after) {
+    keys.forEach(k => rows[k] && rows[k].classList.add('removing'));
+    setTimeout(after, 520);
+  }
+  Object.values(rows).forEach(row => {
+    row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0'); row.setAttribute('aria-selected', row === activeRow ? 'true' : 'false');
+    row.addEventListener('click', () => setActive(row));
+    row.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setActive(row); } });
+  });
+  setActive(activeRow);
+  demoSearch && demoSearch.addEventListener('input', event => filterRows(event.target.value));
+  globalSearch && globalSearch.addEventListener('input', event => { if (demoSearch) { demoSearch.value = event.target.value; filterRows(event.target.value); } });
+  document.getElementById('demo-refresh')?.addEventListener('click', () => { if (demoSearch) demoSearch.value = ''; if (globalSearch) globalSearch.value = ''; filterRows(''); caption.textContent = 'Browser refreshed. Select a group to inspect or rename it.'; });
+  document.getElementById('demo-view-toggle')?.addEventListener('click', event => { event.currentTarget.classList.toggle('active'); caption.textContent = 'The browser view can switch between compact list and inspection layouts.'; });
+  document.getElementById('btn-rename')?.addEventListener('click', () => { if (!activeRow || !renameEditor || !renameInput) return; renameInput.value = rowName(activeRow); renameEditor.hidden = false; renameInput.focus(); renameInput.select(); });
+  document.getElementById('rename-cancel')?.addEventListener('click', () => { if (renameEditor) renameEditor.hidden = true; });
+  document.getElementById('rename-save')?.addEventListener('click', () => { const value = renameInput && renameInput.value.trim(); if (!activeRow || !value) return; const name = activeRow.querySelector('.nm'); const textNode = Array.from(name.childNodes).find(node => node.nodeType === Node.TEXT_NODE); if (textNode) textNode.textContent = value + ' '; else name.insertBefore(document.createTextNode(value + ' '), name.firstChild); if (activeName) activeName.textContent = value; if (renameEditor) renameEditor.hidden = true; caption.innerHTML = '<strong>' + value + '</strong> is now the active group name.'; });
+  document.getElementById('btn-open')?.addEventListener('click', () => { caption.innerHTML = 'Opening <strong>' + rowName(activeRow) + '</strong> in the node editor.'; });
+  document.getElementById('btn-select-users')?.addEventListener('click', () => { caption.innerHTML = 'Selected the users of <strong>' + rowName(activeRow) + '</strong>.'; });
+  document.getElementById('btn-assign')?.addEventListener('click', () => { caption.innerHTML = 'Assigning objects to <strong>' + rowName(activeRow) + '</strong>.'; });
+  document.getElementById('btn-remove-active')?.addEventListener('click', () => { caption.innerHTML = 'Remove is available for the selected group in the full add-on.'; });
+  document.getElementById('btn-remove-nested')?.addEventListener('click', () => { caption.innerHTML = 'Nested users are included when removing <strong>' + rowName(activeRow) + '</strong>.'; });
+  let merged = false, purged = false;
+  btnMerge.addEventListener('click', () => {
+    if (merged) return; merged = true;
+    collapse(['geo001', 'geo002'], () => { if (vTotal) vTotal.textContent = '6'; setShown(6, 6); });
+    if (vDupe) vDupe.textContent = '0'; if (mDupe) mDupe.classList.add('cleared');
+    setScore(72);
+    btnMerge.disabled = true; btnPurge.disabled = false;
+    caption.innerHTML = 'The duplicate was merged into <strong>Geometry Nodes</strong>, with every user remapped first. Next, remove the orphaned group with <strong>Clean orphans</strong>.';
+  });
+  btnPurge.addEventListener('click', () => {
+    if (purged || !merged) return; purged = true;
+    collapse(['temp'], () => { if (vTotal) vTotal.textContent = '5'; setShown(5, 5); });
+    if (vOrphan) vOrphan.textContent = '0'; if (mOrphan) mOrphan.classList.add('cleared');
+    setScore(100);
+    btnPurge.disabled = true;
+    caption.innerHTML = '<strong style="color:var(--good)">100 / 100 — Excellent.</strong> Five groups remain, with no duplicates and no orphaned data.';
+  });
+  btnReset.addEventListener('click', () => {
+    merged = purged = false;
+    Object.values(rows).forEach(r => r.classList.remove('removing'));
+    if (vDupe) vDupe.textContent = '2'; if (vOrphan) vOrphan.textContent = '1'; if (vTotal) vTotal.textContent = '7'; if (demoSearch) demoSearch.value = ''; if (globalSearch) globalSearch.value = ''; Object.values(rows).forEach(row => { row.hidden = false; }); setActive(rows.autosmooth); setShown(7, 7);
+    if (mDupe) mDupe.classList.remove('cleared'); if (mOrphan) mOrphan.classList.remove('cleared');
+    scoreEl.firstChild.textContent = '43'; setScore(43);
+    btnMerge.disabled = false; btnPurge.disabled = true;
+    caption.innerHTML = 'One duplicate copy of <strong>Geometry Nodes</strong> and one orphaned group. Start with <strong>Merge duplicates</strong>.';
+  });
+
+  document.querySelectorAll('.browser-tabs button').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('.browser-tabs button').forEach(other => {
+      const active = other === tab;
+      other.classList.toggle('active', active);
+      other.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }));
+
+  // ---------- Capability card mini-viz (deterministic SVG) ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  (function () {
+    const g = document.getElementById('viz-dupe'); if (!g) return;
+    const mk = (x, o, col) => {
+      const grp = el('g', { opacity: o, transform: `translate(${x},14)` });
+      [[0,8],[14,0],[14,16],[28,8]].forEach(([px,py]) => grp.appendChild(el('circle', { cx: px, cy: py, r: 3, fill: col })));
+      grp.appendChild(el('path', { d: 'M3,8 L11,1 M3,8 L11,15 M17,1 L25,8 M17,15 L25,8', stroke: col, 'stroke-width': 1.2, fill: 'none', opacity: .7 }));
+      return grp;
+    };
+    g.appendChild(mk(30, .3, css('--warn')));
+    g.appendChild(mk(120, .5, css('--warn')));
+    g.appendChild(mk(210, 1, css('--gn')));
+    g.appendChild(el('path', { d: 'M70,31 L118,31 M160,31 L208,31', stroke: css('--accent'), 'stroke-width': 1.4, 'stroke-dasharray': '3 3', fill: 'none' }));
+  })();
+  (function () {
+    const g = document.getElementById('viz-health'); if (!g) return;
+    const cols = [css('--crit'), css('--warn'), '#b7c04a', css('--good'), css('--good')];
+    [16,26,34,46,54].forEach((h, i) => g.appendChild(el('rect', { x: 24 + i * 52, y: 58 - h, width: 30, height: h, rx: 3, fill: cols[i], opacity: .85 })));
+  })();
+  (function () {
+    const g = document.getElementById('viz-lib'); if (!g) return;
+    for (let i = 0; i < 4; i++) g.appendChild(el('rect', { x: 60 + i * 12, y: 12 + i * 6, width: 120, height: 40, rx: 5, fill: 'none', stroke: css('--comp'), 'stroke-width': 1.4, opacity: 1 - i * .2 }));
+    g.appendChild(el('circle', { cx: 210, cy: 22, r: 3.5, fill: css('--accent') }));
+  })();
+
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+    function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+    function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+    paint(document.documentElement.getAttribute('data-theme') || 'light');
+    btn.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('ngm-theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      paint(next);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
+

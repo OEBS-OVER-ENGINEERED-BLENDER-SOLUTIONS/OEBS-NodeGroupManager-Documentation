@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 — Reference</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <nav class="guidenav">
+      <a href="start.html#start">Start</a>
+      <a href="browser.html#browser">Browser</a>
+      <a href="qol-tools.html#health">Health</a>
+      <a href="qol-tools.html#dedupe">Duplicates</a>
+      <a href="reference.html#prefs">Preferences</a>
+      <a href="reference.html#faq">FAQ</a>
+    </nav>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html">Overview</a>
+      <a href="start.html" class="active">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+
+  </div>
+</header>
+
+<div id="view-guide">
+  <div class="layout">
+    <aside>
+      <nav id="toc">
+        <div class="toc-group">
+          <h4><a class="toc-page" href="start.html">Getting started</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="browser.html">The browser</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="cleanup.html">Batch &amp; cleanup</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="qol-tools.html">QOL Tools</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="managers.html">Managers &amp; data</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4>Reference</h4>
+          <a href="#prefs">Preferences</a>
+          <a href="#hotkeys">Hotkeys</a>
+          <a href="#workflows">Workflows</a>
+          <a href="#faq">Troubleshooting &amp; FAQ</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="prefs">
+        <p class="eyebrow">20 · Reference</p>
+        <h2>Preferences reference</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Section</th><th>Setting &amp; effect</th></tr></thead>
+          <tbody>
+            <tr><td>Modules</td><td><strong>Geometry / Shader / Compositor Organizer</strong> — show each manager panel.</td></tr>
+            <tr><td>Safety</td><td><strong>Confirm Deletions</strong> — confirm before removing or merging. <strong>Always Confirm 'Remove All'</strong> — force it even if the above is off.</td></tr>
+            <tr><td>Behaviour</td><td><strong>Auto Refresh on File Load</strong>; <strong>Show All Panels in 3D Viewport</strong>; <strong>Auto-Snapshot on Save</strong>; <strong>Auto-Snapshot Node Limit</strong>.</td></tr>
+            <tr><td>Hotkeys</td><td>Assign keys for <strong>Refresh Node List</strong> and <strong>Quick Switch</strong>; Apply / Reset.</td></tr>
+            <tr><td>Help</td><td>In-UI summary of features.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="hotkeys">
+        <p class="eyebrow">21 · Reference</p>
+        <h2>Hotkeys</h2>
+        <p>Two operators can be bound to keys (Preferences ▸ Hotkeys), active in the Node Editor. Type a key name (e.g. <kbd>F5</kbd>, <kbd>Q</kbd>, <kbd>NUMPAD_0</kbd>), toggle Ctrl/Shift/Alt, and click Apply.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Action</th><th>Operator</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td>Refresh Node List</td><td><code>oebsngm.refresh_list</code></td><td>unset</td></tr>
+            <tr><td>Quick Switch Node Group</td><td><code>oebsngm.quickswitch</code></td><td>unset</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="workflows">
+        <p class="eyebrow">22 · Reference</p>
+        <h2>Recommended workflows</h2>
+        <h3>Clean a bloated file — the headline workflow</h3>
+        <ol class="steps">
+          <li><strong>File Health → Run Health Check.</strong></li>
+          <li><strong>Merge All</strong> to collapse duplicate groups (users are remapped for you).</li>
+          <li><strong>Purge</strong> to delete unused groups (Fake-User groups are kept).</li>
+          <li>Re-run the check — aim for 90+.</li>
+        </ol>
+        <h3>Build a shared library</h3>
+        <ul class="clean">
+          <li>Set the <strong>Library Folder</strong> to your asset folder and <strong>Scan</strong>.</li>
+          <li>Import groups on demand into working files.</li>
+          <li>Keep a <strong>Team Manifest</strong> (JSON/CSV) alongside the library for tracking.</li>
+        </ul>
+        <h3>Safe experimentation</h3>
+        <ul class="clean">
+          <li>Enable <strong>Auto-Snapshot on Save</strong>, iterate freely, and <strong>Restore</strong> a group's snapshot if a graph breaks.</li>
+        </ul>
+      </section>
+
+      <section id="faq">
+        <p class="eyebrow">23 · Reference</p>
+        <h2>Troubleshooting &amp; FAQ</h2>
+
+        <h3>A merge didn't happen even though the groups look identical.</h3>
+        <p>Detection is topology-exact. If any parameter value, socket default, or nested sub-group differs, the groups are intentionally <em>not</em> merged. If the names differ entirely, enable <strong>Match Any Name</strong>. Note that internally-renamed nodes (<code>Math</code> vs <code>Math.001</code> inside the group) count as different graphs — Blender's own <code>.001</code> duplicates keep identical internal names, so they always match.</p>
+
+        <h3>Purge deleted fewer groups than I expected.</h3>
+        <p>Purge only removes groups with <strong>zero users and no Fake User</strong>. Turn Fake User off first (Selection Tools → Fake OFF) if you want protected groups gone.</p>
+
+        <h3>A group shows object users I can't find in my scene.</h3>
+        <p>Those users are probably <strong>stray objects</strong> (in no collection). Check <strong>Diagnostics</strong> and use Delete Stray Objects / Delete Stray Groups.</p>
+
+        <h3>Where is the Library Browser cache?</h3>
+        <p>Blender's config folder, or <code>%LOCALAPPDATA%\OEBS\oebs_ngm_library_cache.json</code> as a fallback. Delete it any time; it rebuilds on the next scan. Use <strong>Full Rescan</strong> if results look stale.</p>
+
+        <h3>The list looks out of date after editing outside the add-on.</h3>
+        <p>It refreshes on scene changes and file load. If an external change didn't trigger a refresh, click <strong>Refresh</strong> (or bind it to a hotkey).</p>
+
+        <h3>Does anything leave my machine?</h3>
+        <p>No. Everything is local — no network access, no telemetry. Snapshots, tags and changelogs live inside your <code>.blend</code>; the library cache is a local JSON file.</p>
+      </section>
+
+      <div class="pager">
+        <a href="managers.html">&larr; Managers & Data</a>
+        <span></span>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll('#toc a[href^="#"]'));
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+})();
+
+(function () {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+  function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+  function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+  paint(document.documentElement.getAttribute('data-theme') || 'light');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ngm-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+

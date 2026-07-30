@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 — Batch & Cleanup</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <nav class="guidenav">
+      <a href="start.html#start">Start</a>
+      <a href="browser.html#browser">Browser</a>
+      <a href="qol-tools.html#health">Health</a>
+      <a href="qol-tools.html#dedupe">Duplicates</a>
+      <a href="reference.html#prefs">Preferences</a>
+      <a href="reference.html#faq">FAQ</a>
+    </nav>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html">Overview</a>
+      <a href="start.html" class="active">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+
+  </div>
+</header>
+
+<div id="view-guide">
+  <div class="layout">
+    <aside>
+      <nav id="toc">
+        <div class="toc-group">
+          <h4><a class="toc-page" href="start.html">Getting started</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="browser.html">The browser</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4>Batch &amp; cleanup</h4>
+          <a href="#selection">Selection Tools</a>
+          <a href="#cleanup">Cleanup &amp; Batch</a>
+          <a href="#diagnostics">Diagnostics</a>
+          <a href="#exchange">Import &amp; Exchange</a>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="qol-tools.html">QOL Tools</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="managers.html">Managers &amp; data</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="reference.html">Reference</a></h4>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="selection">
+        <p class="eyebrow">08 · Batch &amp; cleanup</p>
+        <h2>Selection Tools</h2>
+        <p>Appears as <strong>Selection Tools (N)</strong> where N is the number of checked rows.</p>
+        <ul class="clean">
+          <li><strong>Remove</strong> — delete all checked groups at once.</li>
+          <li><strong>Export</strong> — write the checked groups to an external <code>.blend</code>.</li>
+          <li><strong>Fake ON / Fake OFF</strong> — set Fake User on every checked group.</li>
+          <li><strong>Mark Asset</strong> — mark the active group as an asset.</li>
+        </ul>
+      </section>
+
+      <section id="cleanup">
+        <p class="eyebrow">09 · Batch &amp; cleanup</p>
+        <h2>Cleanup &amp; Batch</h2>
+        <p>Node Editor surface only.</p>
+        <ul class="clean">
+          <li><strong>Scan Unused Sockets</strong> — file-wide report of groups with dead interface sockets.</li>
+          <li><strong>Versions</strong> — lists all version-tagged groups.</li>
+          <li><strong>Remove Orphaned</strong> — deletes every unused group (Fake User respected).</li>
+          <li><strong>Remove All</strong> — deletes every group of the current type (confirmation required).</li>
+          <li><strong>Batch Rename</strong> — bulk rename by prefix / suffix / find-replace across the current type.</li>
+        </ul>
+      </section>
+
+      <section id="diagnostics">
+        <p class="eyebrow">10 · Batch &amp; cleanup</p>
+        <h2>Diagnostics</h2>
+        <p>This section appears <strong>only when stray objects exist</strong>. It reports the count and offers <strong>Delete Stray Groups</strong> (groups used only by stray objects) and <strong>Delete Stray Objects</strong> (objects in no collection).</p>
+        <div class="note"><span class="lab">Why it matters</span>Stray objects are a common reason a group appears to be in use when nothing in your scene references it.</div>
+      </section>
+
+      <section id="exchange">
+        <p class="eyebrow">11 · Batch &amp; cleanup</p>
+        <h2>Import &amp; Exchange</h2>
+        <ul class="clean">
+          <li><strong>Import .blend</strong> — append node groups from an external file.</li>
+          <li><strong>Cross-File Search</strong> — search every <code>.blend</code> in your Library Folder by name and import matches.</li>
+          <li><strong>Hot Swap</strong> — the Quick Switch popup (searchable jump to any group; also bindable to a hotkey).</li>
+          <li><strong>Team Export</strong> — write a manifest of every group (name, type, version, node/link counts, complexity, parents, children, flags) as <strong>JSON or CSV</strong>.</li>
+        </ul>
+      </section>
+
+      <div class="pager">
+        <a href="browser.html">&larr; The Browser</a>
+        <a href="qol-tools.html">QOL Tools &rarr;</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll('#toc a[href^="#"]'));
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+})();
+
+(function () {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+  function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+  function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+  paint(document.documentElement.getAttribute('data-theme') || 'light');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ngm-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+

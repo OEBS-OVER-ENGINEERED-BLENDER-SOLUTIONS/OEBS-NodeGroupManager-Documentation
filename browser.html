@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 — The Browser</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <nav class="guidenav">
+      <a href="start.html#start">Start</a>
+      <a href="browser.html#browser">Browser</a>
+      <a href="qol-tools.html#health">Health</a>
+      <a href="qol-tools.html#dedupe">Duplicates</a>
+      <a href="reference.html#prefs">Preferences</a>
+      <a href="reference.html#faq">FAQ</a>
+    </nav>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html">Overview</a>
+      <a href="start.html" class="active">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+
+  </div>
+</header>
+
+<div id="view-guide">
+  <div class="layout">
+    <aside>
+      <nav id="toc">
+        <div class="toc-group">
+          <h4><a class="toc-page" href="start.html">Getting started</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4>The browser</h4>
+          <a href="#browser">Preview / Browser</a>
+          <a href="#filter">Filter, search &amp; sort</a>
+          <a href="#active">Active Group panel</a>
+          <a href="#pergroup">Per-group tools</a>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="cleanup.html">Batch &amp; cleanup</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="qol-tools.html">QOL Tools</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="managers.html">Managers &amp; data</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="reference.html">Reference</a></h4>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="browser">
+        <p class="eyebrow">04 · The browser</p>
+        <h2>The Browser</h2>
+        <p>A live list of every node group of the current type. The Geometry columns are described below; Shader and Compositor follow the same pattern.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Checkbox</td><td>Select this row for batch operations.</td></tr>
+            <tr><td>★ Star</td><td>Toggle Favorite.</td></tr>
+            <tr><td>Shield</td><td>Toggle Fake User (protects from deletion).</td></tr>
+            <tr><td>Asset dot</td><td>Filled when the group is marked as an Asset Browser asset.</td></tr>
+            <tr><td>Active dot</td><td>Filled when the group belongs to the active/selected object.</td></tr>
+            <tr><td>Folder / ▶▼</td><td>Marks a top-level group; in Tree View this becomes an expand toggle.</td></tr>
+            <tr><td>Name</td><td>Click to make active; the pencil renames inline. A red name = orphaned or over budget. A "Stray" badge = only stray objects use it.</td></tr>
+            <tr><td>Groups (G)</td><td>Number of directly nested child groups.</td></tr>
+            <tr><td>N</td><td>Node count.</td></tr>
+            <tr><td>Obj</td><td>Objects using the group (red when 0).</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Tree View</h3>
+        <p>Toggle the outliner icon to switch the flat list into a hierarchy. Top-level groups gain a ▶/▼ expander; expanding reveals nested children inline, indented with a <code>└</code> connector. Circular references are handled safely.</p>
+        <div class="note tip"><span class="lab">Performance</span>Child-group lookups are cached, so scrolling and hovering stay responsive in files with many large groups. On a test file of 40 groups averaging 160 nodes each, this reduced list-drawing overhead by roughly 14×.</div>
+      </section>
+
+      <section id="filter">
+        <p class="eyebrow">05 · The browser</p>
+        <h2>Filter, search &amp; sort</h2>
+        <ul class="clean">
+          <li><strong>Search field</strong> — case-insensitive substring. Toggle <code>.*</code> for full <strong>regex</strong>.</li>
+          <li><strong>Sort By</strong> — Name, Object Users, Node Count, Nested, References, or Complexity; the arrow flips direction.</li>
+          <li><strong>Name → Tag</strong> — treat a version suffix in the name (e.g. <code>MyGroup_v2</code>) as a version tag automatically.</li>
+        </ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Filter</th><th>Shows only…</th></tr></thead>
+          <tbody>
+            <tr><td>Unused</td><td>Groups with zero real users.</td></tr>
+            <tr><td>Orphaned</td><td>Groups not used by any modifier (including nested).</td></tr>
+            <tr><td>★</td><td>Favorited groups.</td></tr>
+            <tr><td>Sel</td><td>Rows you've checked.</td></tr>
+            <tr><td>No Ver.</td><td>Hides groups whose names carry a version suffix.</td></tr>
+            <tr><td>Object icon</td><td>Groups used by the active viewport object (direct + nested).</td></tr>
+          </tbody>
+        </table></div>
+        <p><strong>Global Search</strong> (3D Viewport surface): the <strong>Search All Trees…</strong> button searches Geometry, Shader and Compositor at once and jumps to the first match.</p>
+      </section>
+
+      <section id="active">
+        <p class="eyebrow">06 · The browser</p>
+        <h2>The Active Group panel</h2>
+        <p>Click any row to populate this panel with the selected group's details and tools:</p>
+        <ul class="clean">
+          <li><strong>Header</strong> — the group name, plus an "Asset Marked" note if applicable.</li>
+          <li><strong>Open</strong> (with a <strong>Pin</strong> toggle), <strong>Duplicate</strong>, <strong>Rename</strong>, <strong>Batch Replace</strong>.</li>
+          <li><strong>Select Users</strong>, <strong>Assign to N Obj</strong> (adds the group as a GN modifier to selected objects), <strong>Remove+Nested</strong>, <strong>Remove</strong>.</li>
+          <li><strong>Stats</strong> — <code>N:</code> nodes, <code>L:</code> links, <code>G:</code> nested, <code>Obj:</code> users, <code>Cx:</code> complexity, plus <strong>Validate</strong>.</li>
+          <li><strong>Version</strong> row with edit/clear + a <strong>Sockets</strong> report; then <strong>Changelog</strong>, <strong>Socket Descriptions</strong>, <strong>Save Snapshot</strong>.</li>
+          <li><strong>Dependencies</strong> expander — parent groups ("Used in") and child groups ("Contains"), each with a quick-open button.</li>
+        </ul>
+      </section>
+
+      <section id="pergroup">
+        <p class="eyebrow">07 · The browser</p>
+        <h2>Per-group tools</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Open in Node Editor</td><td>Jumps a node editor to this group. The Pin toggle keeps it pinned.</td></tr>
+            <tr><td>Rename</td><td>Dialog rename; the inline pencil renames straight from the row.</td></tr>
+            <tr><td>Duplicate</td><td>Copies the group (Fake User on the copy).</td></tr>
+            <tr><td>Batch Replace</td><td>Replaces all references to this group with another, file-wide.</td></tr>
+            <tr><td>Select Users</td><td>Selects every object using the group.</td></tr>
+            <tr><td>Assign to N Obj</td><td>Adds the group as a Geometry Nodes modifier on all selected objects.</td></tr>
+            <tr><td>Validate</td><td>Scans for broken links and missing GROUP references.</td></tr>
+            <tr><td>Find Unused Sockets</td><td>Lists Group Input/Output sockets with no internal connection.</td></tr>
+            <tr><td>Mark / Clear Asset</td><td>Adds or removes Asset Browser marking.</td></tr>
+            <tr><td>Toggle Fake User</td><td>Protects the group from being purged.</td></tr>
+            <tr><td>Remove / Remove+Nested</td><td>Deletes the group; the nested variant also removes groups used only inside it (with a preview).</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <div class="pager">
+        <a href="start.html">&larr; Getting Started</a>
+        <a href="cleanup.html">Batch & Cleanup &rarr;</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll('#toc a[href^="#"]'));
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+})();
+
+(function () {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+  function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+  function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+  paint(document.documentElement.getAttribute('data-theme') || 'light');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ngm-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+

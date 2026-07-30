@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 — Getting Started</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <nav class="guidenav">
+      <a href="start.html#start">Start</a>
+      <a href="browser.html#browser">Browser</a>
+      <a href="qol-tools.html#health">Health</a>
+      <a href="qol-tools.html#dedupe">Duplicates</a>
+      <a href="reference.html#prefs">Preferences</a>
+      <a href="reference.html#faq">FAQ</a>
+    </nav>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html">Overview</a>
+      <a href="start.html" class="active">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+
+  </div>
+</header>
+
+<div id="view-guide">
+  <div class="layout">
+    <aside>
+      <nav id="toc">
+        <div class="toc-group">
+          <h4>Getting started</h4>
+          <a href="#start">Quick start</a>
+          <a href="#concepts">Concepts &amp; vocabulary</a>
+          <a href="#where">Where the panels live</a>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="browser.html">The browser</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="cleanup.html">Batch &amp; cleanup</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="qol-tools.html">QOL Tools</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="managers.html">Managers &amp; data</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="reference.html">Reference</a></h4>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="start">
+        <p class="eyebrow">01 · Getting started</p>
+        <h2>Quick start</h2>
+        <p>Install the add-on, open the panel, and run your first cleanup:</p>
+        <ol class="steps">
+          <li><strong>Install.</strong> <kbd>Edit ▸ Preferences ▸ Add-ons ▸ Install…</kbd>, pick <code>node_group_manager.zip</code>, enable <strong>OEBS Node Group Manager</strong>. In Blender 4.2+ you can drag the zip into the window instead.</li>
+          <li><strong>Open the panel.</strong> Press <kbd>N</kbd> in the 3D Viewport → <strong>Nodes Manager</strong> tab, or press <kbd>N</kbd> in any node editor → <strong>GN / SN / Comp Manager</strong> tab.</li>
+          <li><strong>Browse.</strong> The list shows every node group in the file. Click a name to load its details into the Active Group panel.</li>
+          <li><strong>Clean up.</strong> Open <strong>File Health</strong>, click <strong>Run Health Check</strong>, then <strong>Merge All</strong> (duplicates) and <strong>Purge</strong> (unused) to reclaim the file.</li>
+        </ol>
+      </section>
+
+      <section id="concepts">
+        <p class="eyebrow">02 · Getting started</p>
+        <h2>Concepts &amp; vocabulary</h2>
+        <p>A shared vocabulary for the rest of the guide.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Node group</td><td>A reusable Geometry, Shader, or Compositor node tree (<code>bpy.data.node_groups</code>).</td></tr>
+            <tr><td>Orphaned</td><td>A group not reachable from any object modifier (GN) or material (Shader).</td></tr>
+            <tr><td>Unused</td><td>A group with zero <em>real</em> users. A Fake User does not count as a real user.</td></tr>
+            <tr><td>Stray object</td><td>An object that exists in the file but sits in no collection — a common cause of "phantom" group users.</td></tr>
+            <tr><td>Fake User</td><td>Blender's shield flag that keeps a datablock from being purged even when unused.</td></tr>
+            <tr><td>Top-level group</td><td>A group assigned directly to a modifier (GN), or not nested inside any other group (Shader).</td></tr>
+            <tr><td>Complexity score</td><td>A weight: <code>nodes×1 + links×0.5 + nested×5</code> — roughly "how heavy is this group".</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="where">
+        <p class="eyebrow">03 · Getting started</p>
+        <h2>Where the panels live</h2>
+        <p>The add-on appears in two places and adapts to the active editor.</p>
+        <ul class="clean">
+          <li><strong>3D Viewport → <kbd>N</kbd> → "Nodes Manager".</strong> A <span class="badge gn">Geometry</span> <span class="badge sn">Shader</span> <span class="badge comp">Compositor</span> selector picks which manager to view — a slimmer, browsing-focused layout.</li>
+          <li><strong>Node Editor → <kbd>N</kbd> sidebar.</strong> Auto-detects the editor type and shows the full toolset under the <strong>GN&nbsp;/&nbsp;SN&nbsp;/&nbsp;Comp Manager</strong> tab.</li>
+        </ul>
+        <h3>Draggable panels <span class="badge new">New in 2.0</span></h3>
+        <p><strong>File Health</strong>, <strong>Duplicate Finder</strong>, <strong>Library Browser</strong> and <strong>Column Widths</strong> are now separate sidebar panels. Drag their headers to reorder, collapse each independently — Blender remembers your arrangement per workspace. They start collapsed.</p>
+        <div class="note"><span class="lab">Note</span>By default these four appear only in the Node Editor sidebars. To show them in the 3D Viewport too, enable <strong>Preferences ▸ Behaviour ▸ Show All Panels in 3D Viewport</strong>.</div>
+      </section>
+
+      <div class="pager">
+        <span></span>
+        <a href="browser.html">The Browser &rarr;</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll('#toc a[href^="#"]'));
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+})();
+
+(function () {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+  function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+  function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+  paint(document.documentElement.getAttribute('data-theme') || 'light');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ngm-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OEBS Node Group Manager 2.0 — QOL Tools</title>
+<script>
+(function () {
+  var t = localStorage.getItem('ngm-theme') ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">
+      <span class="glyph"><svg viewBox="0 0 26 24" aria-hidden="true"><path class="wire" d="M7 5.5 L13 12 L7 18.5 M13 12 H17"/><circle class="n-gn" cx="5" cy="5.5" r="2.25"/><circle class="n-sn" cx="5" cy="12" r="2.25"/><circle class="n-comp" cx="5" cy="18.5" r="2.25"/><circle class="n-hub" cx="19" cy="12" r="3.35"/></svg></span>
+      <span class="brand-oebs">OEBS</span> Node Group Manager
+      <span class="ver">v2.0.0</span>
+    </span>
+    <nav class="guidenav">
+      <a href="start.html#start">Start</a>
+      <a href="browser.html#browser">Browser</a>
+      <a href="qol-tools.html#health">Health</a>
+      <a href="qol-tools.html#dedupe">Duplicates</a>
+      <a href="reference.html#prefs">Preferences</a>
+      <a href="reference.html#faq">FAQ</a>
+    </nav>
+    <span class="sp"></span>
+    <nav class="viewtoggle">
+      <a href="index.html">Overview</a>
+      <a href="start.html" class="active">User Guide</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+
+  </div>
+</header>
+
+<div id="view-guide">
+  <div class="layout">
+    <aside>
+      <nav id="toc">
+        <div class="toc-group">
+          <h4><a class="toc-page" href="start.html">Getting started</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="browser.html">The browser</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="cleanup.html">Batch &amp; cleanup</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4>QOL Tools</h4>
+          <a href="#health">File Health</a>
+          <a href="#dedupe">Duplicate Finder</a>
+          <a href="#library">Library Browser</a>
+          <a href="#columns">Column Widths</a>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="managers.html">Managers &amp; data</a></h4>
+        </div>
+        <div class="toc-group">
+          <h4><a class="toc-page" href="reference.html">Reference</a></h4>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="health">
+        <p class="eyebrow">12 · QOL Tools</p>
+        <div class="lead-row"><h2 style="margin:0">File Health</h2><span class="badge new">New in 2.0</span></div>
+        <p>A one-click audit of the whole file, presented as a <strong>0–100 score</strong> with per-metric fix buttons.</p>
+        <ol class="steps">
+          <li>Click <strong>Run Health Check.</strong></li>
+          <li>Read the score and grade — <strong>Excellent</strong> ≥ 90, <strong>Good</strong> ≥ 70, <strong>Needs Cleanup</strong> ≥ 40, <strong>Critical</strong> below.</li>
+          <li>Use each metric's inline fix.</li>
+        </ol>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Metric</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>Unused groups (deletable)</td><td><strong>Purge</strong> — deletes zero-user groups; Fake-User groups are always kept.</td></tr>
+            <tr><td>Duplicate groups (mergeable)</td><td><strong>Merge All</strong> — hands off to the Duplicate Finder.</td></tr>
+            <tr><td>Groups with broken references</td><td>Flagged for review.</td></tr>
+            <tr><td>Groups with unused sockets</td><td><strong>Report</strong> — runs the file-wide socket scan.</td></tr>
+            <tr><td>Stray objects</td><td><strong>Review</strong> — opens stray-object cleanup.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Each problem class is penalty-capped so one issue type can't tank the whole score. Protected (Fake-User) unused groups are counted separately and never purged.</p>
+      </section>
+
+      <section id="dedupe">
+        <p class="eyebrow">13 · QOL Tools</p>
+        <div class="lead-row"><h2 style="margin:0">Duplicate Finder</h2><span class="badge new">New in 2.0</span></div>
+        <p>Finds and merges duplicate node groups — the classic <code>.001</code> / <code>.002</code> clutter left by appending.</p>
+        <h3>How detection works</h3>
+        <p>Two groups match only if their <strong>entire graph topology is identical</strong> — node types, parameter values, input socket defaults, the interface, <em>and</em> the hashes of any nested sub-groups. Groups that differ by even one parameter value are <strong>never</strong> treated as duplicates.</p>
+        <h3>Controls</h3>
+        <ul class="clean">
+          <li><strong>Scan for Duplicates</strong> — each set shows the <strong>primary</strong> (kept) group with a checkmark and user count; duplicates sit beneath in red.</li>
+          <li><strong>Match Any Name</strong> — off: only groups sharing a base name (<code>Rock</code> / <code>Rock.001</code>). On: also matches identical graphs with entirely different names.</li>
+          <li><strong>Rename to Base</strong> — after merging, rename the survivor back to its base name if it's free.</li>
+          <li><strong>Merge (per set)</strong> or <strong>Merge All Duplicates</strong>.</li>
+        </ul>
+        <div class="note tip"><span class="lab">What "merge" does</span>Every user of each duplicate — objects, materials, <em>and parent groups that contain it as a node</em> — is remapped to the primary, then the duplicate is deleted. It's non-destructive to your scene's behavior and works with Undo.</div>
+      </section>
+
+      <section id="library">
+        <p class="eyebrow">14 · QOL Tools</p>
+        <h2>Library Browser</h2>
+        <p>Turn a folder of <code>.blend</code> files into a searchable, importable node-group library.</p>
+        <ul class="clean">
+          <li><strong>Folder field</strong> — the root folder to scan.</li>
+          <li><strong>Scan</strong> — indexes every <code>.blend</code>. Results are <strong>cached to disk and validated by each file's modification time</strong>, so re-scanning an unchanged library is near-instant.</li>
+          <li><strong>Full Rescan</strong> — ignores the cache and re-reads every file.</li>
+          <li><strong>Filter</strong> — narrow results by name.</li>
+          <li><strong>Import Selected</strong> — append the highlighted group (Fake User on by default). Wrong-type imports for the current tab are blocked.</li>
+        </ul>
+        <div class="note"><span class="lab">Cache location</span>Blender's config folder, or <code>%LOCALAPPDATA%\OEBS\</code> if that isn't writable. Safe to delete any time — it rebuilds on the next scan.</div>
+      </section>
+
+      <section id="columns">
+        <p class="eyebrow">15 · QOL Tools</p>
+        <h2>Column Widths &amp; layout</h2>
+        <ul class="clean">
+          <li><strong>Column Widths</strong> — drag the <code>&lt; &gt;</code> steppers to change Name / Groups / Nodes / Obj proportions and the number of visible <strong>Rows</strong>. Each manager keeps its own widths; in the 3D Viewport this panel follows the active tab.</li>
+          <li><strong>Compact Mode</strong> — keeps the browser and core actions visible while hiding secondary inspection and advanced utility tools.</li>
+          <li><strong>Complexity Alerts</strong> (Geometry) — highlight in red any group whose complexity exceeds the <strong>Budget</strong> you set.</li>
+        </ul>
+      </section>
+
+      <div class="pager">
+        <a href="cleanup.html">&larr; Batch & Cleanup</a>
+        <a href="managers.html">Managers & Data &rarr;</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>OEBS — Over Engineered Blender Solutions</span>
+    <span class="r">Node Group Manager 2.0.0 · Blender 4.2 – 5.x · Local &amp; private</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const links = Array.from(document.querySelectorAll('#toc a[href^="#"]'));
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('main section[id]').forEach(s => io.observe(s));
+})();
+
+(function () {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function icon(t) { return t === 'dark' ? '☀' : '☾'; }
+  function label(t) { return t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; }
+  function paint(t) { btn.textContent = icon(t); btn.setAttribute('aria-label', label(t)); btn.title = label(t); }
+  paint(document.documentElement.getAttribute('data-theme') || 'light');
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ngm-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+
