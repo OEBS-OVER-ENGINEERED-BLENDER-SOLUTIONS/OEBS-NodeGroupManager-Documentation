@@ -1,13 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=overview.html">
-<link rel="canonical" href="overview.html">
-<title>OEBS Node Group Manager 2.0 — Overview</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OEBS Studios — Blender Add-ons</title>
+<meta name="description" content="OEBS Studios builds Blender add-ons for animation, rigging and scene management. Documentation for Node Group Manager and more.">
+<link rel="canonical" href="https://oebs-studios.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OEBS Studios">
+<meta property="og:title" content="OEBS Studios — Blender Add-ons">
+<meta property="og:description" content="Blender add-ons for animation, rigging and scene management.">
+<meta property="og:url" content="https://oebs-studios.com/">
+<meta name="twitter:card" content="summary">
+<style>
+  :root{
+    --ink:#17151c; --soft:#4b4557; --muted:#6f6880;
+    --ground:#fbfafc; --card:#f3f0f8; --rule:#e2dcec; --accent:#6d4aa8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--ink:#ece8f3; --soft:#c4bdd4; --muted:#968ea8;
+          --ground:#141119; --card:#1d1926; --rule:#322b40; --accent:#b392ec;}
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:44rem;margin:0 auto;padding:clamp(3rem,10vw,6rem) 1.25rem 4rem}
+  h1{font-size:clamp(2rem,7vw,2.75rem);line-height:1.1;letter-spacing:-.025em;margin:0 0 .6rem}
+  .lede{font-size:1.1rem;color:var(--soft);margin:0 0 2.5rem;max-width:32rem}
+  h2{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+     font-weight:600;margin:0 0 .9rem}
+  ul{list-style:none;padding:0;margin:0;display:grid;gap:.75rem}
+  a.card{
+    display:block;padding:1.1rem 1.25rem;background:var(--card);
+    border:1px solid var(--rule);border-radius:8px;text-decoration:none;color:inherit;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  a.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  a.card b{display:block;font-size:1.05rem;margin-bottom:.15rem}
+  a.card span{color:var(--muted);font-size:.93rem}
+  footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+         color:var(--muted);font-size:.88rem}
+</style>
 </head>
 <body>
-<p><a href="overview.html">Continue to the Overview</a></p>
-<script>location.replace("overview.html");</script>
+  <div class="wrap">
+    <h1>OEBS Studios</h1>
+    <p class="lede">Blender add-ons for animation, rigging and scene management.</p>
+
+    <h2>Documentation</h2>
+    <ul>
+      <li>
+        <a class="card" href="NodeGroupManager/">
+          <b>Node Group Manager</b>
+          <span>Find, tidy and reuse node groups across a .blend file.</span>
+        </a>
+      </li>
+    </ul>
+
+    <footer>OEBS Studios</footer>
+  </div>
 </body>
 </html>
