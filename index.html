@@ -3,65 +3,199 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OEBS Studios — Blender Add-ons</title>
-<meta name="description" content="OEBS Studios builds Blender add-ons for animation, rigging and scene management. Documentation for Node Group Manager and more.">
-<link rel="canonical" href="https://oebs-studios.com/">
+<title>OEBS Docs — Blender Add-on Documentation</title>
+<meta name="description" content="Documentation for OEBS Studios Blender add-ons: Node Group Manager, Driver Espresso and more. Pick the add-on you are working with.">
+<link rel="canonical" href="https://docs.oebs-studios.com/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="OEBS Studios">
-<meta property="og:title" content="OEBS Studios — Blender Add-ons">
-<meta property="og:description" content="Blender add-ons for animation, rigging and scene management.">
-<meta property="og:url" content="https://oebs-studios.com/">
+<meta property="og:site_name" content="OEBS Docs">
+<meta property="og:title" content="OEBS Docs — Blender Add-on Documentation">
+<meta property="og:description" content="Documentation for OEBS Studios Blender add-ons. Pick the add-on you are working with.">
+<meta property="og:url" content="https://docs.oebs-studios.com/">
 <meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
 <style>
   :root{
-    --ink:#17151c; --soft:#4b4557; --muted:#6f6880;
-    --ground:#fbfafc; --card:#f3f0f8; --rule:#e2dcec; --accent:#6d4aa8;
+    --paper:#F6F6F3; --surface:#FFFFFF; --ink:#14151A; --body:#42444E;
+    --muted:#747681; --rule:#DFDFD8; --rule-soft:#EBEBE5;
+    --accent:#2551E8; --accent-ink:#1C3FB8; --accent-wash:#E8EDFD;
+    --grid:#00000008; --ok:#1F6B4A; --ok-wash:#E4F1EA;
   }
-  @media (prefers-color-scheme:dark){
-    :root{--ink:#ece8f3; --soft:#c4bdd4; --muted:#968ea8;
-          --ground:#141119; --card:#1d1926; --rule:#322b40; --accent:#b392ec;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#101116; --surface:#181A21; --ink:#F0F0F3; --body:#B7B9C4;
+      --muted:#82848F; --rule:#2A2C36; --rule-soft:#22242C;
+      --accent:#7E9BFF; --accent-ink:#9DB3FF; --accent-wash:#1A1F33;
+      --grid:#FFFFFF08; --ok:#6FC79C; --ok-wash:#152720;
+    }
   }
+  :root[data-theme="dark"]{
+    --paper:#101116; --surface:#181A21; --ink:#F0F0F3; --body:#B7B9C4;
+    --muted:#82848F; --rule:#2A2C36; --rule-soft:#22242C;
+    --accent:#7E9BFF; --accent-ink:#9DB3FF; --accent-wash:#1A1F33;
+    --grid:#FFFFFF08; --ok:#6FC79C; --ok-wash:#152720;
+  }
+
   *{box-sizing:border-box}
   body{
-    margin:0; background:var(--ground); color:var(--ink);
-    font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-    -webkit-font-smoothing:antialiased;
+    margin:0; background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:44px 44px;
+    color:var(--body);
+    font-family:"Instrument Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:44rem;margin:0 auto;padding:clamp(3rem,10vw,6rem) 1.25rem 4rem}
-  h1{font-size:clamp(2rem,7vw,2.75rem);line-height:1.1;letter-spacing:-.025em;margin:0 0 .6rem}
-  .lede{font-size:1.1rem;color:var(--soft);margin:0 0 2.5rem;max-width:32rem}
-  h2{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
-     font-weight:600;margin:0 0 .9rem}
-  ul{list-style:none;padding:0;margin:0;display:grid;gap:.75rem}
-  a.card{
-    display:block;padding:1.1rem 1.25rem;background:var(--card);
-    border:1px solid var(--rule);border-radius:8px;text-decoration:none;color:inherit;
-    transition:border-color .15s ease, transform .15s ease;
+  .wrap{max-width:62rem;margin:0 auto;padding-inline:20px}
+  a{color:var(--accent-ink)}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+        font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+
+  header.site{
+    display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    padding-block:1.6rem;border-bottom:1px solid var(--rule);
   }
-  a.card:hover{border-color:var(--accent);transform:translateY(-1px)}
-  a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  a.card b{display:block;font-size:1.05rem;margin-bottom:.15rem}
-  a.card span{color:var(--muted);font-size:.93rem}
-  footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
-         color:var(--muted);font-size:.88rem}
+  .wordmark{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--ink)}
+  .mark{width:1.65rem;height:1.65rem;flex:none;border-radius:5px;background:var(--accent);position:relative}
+  .mark::before,.mark::after{
+    content:"";position:absolute;background:var(--paper);border-radius:50%;
+    width:.38rem;height:.38rem;top:50%;transform:translateY(-50%);
+  }
+  .mark::before{left:.3rem}
+  .mark::after{right:.3rem}
+  .wordmark b{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:-.02em}
+  nav.site{display:flex;gap:1.4rem}
+  nav.site a{color:var(--body);text-decoration:none;font-size:.92rem;font-weight:500}
+  nav.site a:hover{color:var(--ink)}
+
+  .hero{padding-block:clamp(3rem,8vw,5rem) clamp(2rem,5vw,3rem)}
+  .kicker{color:var(--accent-ink);display:block;margin-bottom:1rem}
+  h1{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+    font-size:clamp(2.2rem,6.5vw,3.5rem);line-height:1.04;letter-spacing:-.035em;
+    color:var(--ink);margin:0 0 1rem;text-wrap:balance;
+  }
+  .hero p{font-size:clamp(1.02rem,2.3vw,1.18rem);max-width:48ch;margin:0}
+
+  section{padding-block:clamp(1.5rem,4vw,2.5rem)}
+  .sec-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+    padding-bottom:1rem;margin-bottom:1.5rem;border-bottom:1px solid var(--rule);
+  }
+  .sec-head h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+               font-size:1.35rem;letter-spacing:-.02em;color:var(--ink);margin:0}
+  .sec-head .mono{color:var(--muted)}
+
+  .cards{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))}
+  .card{
+    background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+    padding:1.5rem;display:flex;flex-direction:column;gap:.6rem;
+  }
+  .card .eyebrow{color:var(--accent-ink)}
+  .card h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:1.25rem;
+           letter-spacing:-.02em;color:var(--ink);margin:0}
+  .card p{margin:0;font-size:.97rem}
+  .card ul{margin:.3rem 0 0;padding-left:1.05rem;font-size:.93rem;display:grid;gap:.3rem}
+  .card li::marker{color:var(--accent)}
+  .card .foot{margin-top:auto;padding-top:1rem}
+  .card .foot a{
+    display:inline-block;text-decoration:none;font-weight:600;font-size:.92rem;
+    padding:.5rem 1rem;border-radius:6px;background:var(--accent);color:#fff;
+  }
+  .card .foot a:hover{background:var(--accent-ink)}
+  :root[data-theme="dark"] .card .foot a,
+  :root:not([data-theme="light"]) .card .foot a{color:#0E1018}
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]) .card .foot a{color:#fff}
+  }
+  .card.pending{border-style:dashed}
+  .card .soon{
+    display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ok);background:var(--ok-wash);border-radius:999px;padding:.26rem .6rem;
+  }
+
+  .note{
+    margin-top:1.4rem;padding:1rem 1.2rem;border-left:3px solid var(--rule);
+    font-size:.95rem;color:var(--muted);max-width:60ch;
+  }
+
+  footer.site{
+    margin-top:clamp(2rem,5vw,3rem);padding-block:1.8rem 3rem;border-top:1px solid var(--rule);
+    display:flex;flex-wrap:wrap;gap:.8rem 2rem;align-items:center;justify-content:space-between;
+  }
+  footer.site p{margin:0;font-size:.9rem;color:var(--muted)}
+  footer.site .flinks{display:flex;flex-wrap:wrap;gap:1.2rem}
+  footer.site a{color:var(--body);text-decoration:none;font-size:.9rem}
+  footer.site a:hover{color:var(--ink)}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>OEBS Studios</h1>
-    <p class="lede">Blender add-ons for animation, rigging and scene management.</p>
+<div class="wrap">
 
-    <h2>Documentation</h2>
-    <ul>
-      <li>
-        <a class="card" href="NodeGroupManager/">
-          <b>Node Group Manager</b>
-          <span>Find, tidy and reuse node groups across a .blend file.</span>
-        </a>
-      </li>
-    </ul>
+  <header class="site">
+    <a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span><b>OEBS Docs</b></a>
+    <nav class="site">
+      <a href="https://oebs-studios.com/">Studio</a>
+      <a href="https://superhivemarket.com/creators/oebs-studios">Store</a>
+    </nav>
+  </header>
 
-    <footer>OEBS Studios</footer>
+  <div class="hero">
+    <span class="kicker mono">Documentation</span>
+    <h1>Guides for every OEBS add-on.</h1>
+    <p>Written documentation for each tool — what every control does, how the workflow fits together, and what to check when something misbehaves. Pick the add-on you're working with.</p>
   </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Add-ons</h2>
+      <span class="mono">Blender 4.2+</span>
+    </div>
+
+    <div class="cards">
+
+      <article class="card">
+        <span class="eyebrow mono">Nodes</span>
+        <h3>Node Group Manager</h3>
+        <p>Find, tidy and reuse node groups across a .blend file — three tools sharing one panel.</p>
+        <ul>
+          <li>Browse shader, geometry and compositor groups in one list</li>
+          <li>Duplicate finder and file-health checks</li>
+          <li>Cleanup, batch tools and selection helpers</li>
+        </ul>
+        <div class="foot"><a href="NodeGroupManager/">Open the documentation</a></div>
+      </article>
+
+      <article class="card pending">
+        <span class="eyebrow mono">Animation</span>
+        <h3>Driver Espresso</h3>
+        <p>Driver-based procedural animation. Pick a template, right-click a property, and tune the motion while it plays.</p>
+        <ul>
+          <li>230 templates across 22 categories in Premium</li>
+          <li>Graph and Visual previews before you apply anything</li>
+          <li>Live controls that keep working after the driver is applied</li>
+        </ul>
+        <div class="foot"><span class="soon">Docs coming soon</span></div>
+      </article>
+
+    </div>
+
+    <p class="note">Scene Retimer and Icon Viewer don't have written guides yet. Their product pages on Superhive cover setup in the meantime.</p>
+  </section>
+
+  <footer class="site">
+    <p>© 2026 OEBS Studios</p>
+    <div class="flinks">
+      <a href="https://oebs-studios.com/">oebs-studios.com</a>
+      <a href="https://superhivemarket.com/creators/oebs-studios">Superhive store</a>
+    </div>
+  </footer>
+
+</div>
 </body>
 </html>
